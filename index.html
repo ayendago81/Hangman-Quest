@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f0326">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hangman Quest">
+<meta name="application-name" content="Hangman Quest">
+<meta name="description" content="Hangman Word Quest – a spelling game for Basic School pupils by Booming Point Multimedia Center, Bolgatanga">
+<meta name="msapplication-TileColor" content="#0f0326">
+<link rel="manifest" id="pwaManifest">
+<link rel="apple-touch-icon" id="appleIcon">
+<title>Hangman Word Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f0326;--panel:#1e0a42;--card:#2a1058;--a1:#f5c842;--a2:#ff6b6b;--a3:#5ef5a0;--a4:#64d8ff;--tx:#f0e8ff;--mu:#9b82c4;--r:16px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(circle at 10% 20%,rgba(100,50,200,.15) 0%,transparent 50%),
+  radial-gradient(circle at 90% 80%,rgba(245,200,66,.07) 0%,transparent 50%)}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle 3s infinite}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.85}}
+.screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:18px;position:relative;z-index:1}
+.screen.active{display:flex}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes popIn{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+/* BUTTONS */
+.btn{font-family:'Poppins',sans-serif;font-weight:700;font-size:.95rem;padding:12px 30px;border:none;border-radius:50px;cursor:pointer;transition:all .16s;position:relative;overflow:hidden}
+.btn:active{transform:scale(.95)}
+.bp{background:linear-gradient(135deg,#f5c842,#ff9400);color:#1a0533;box-shadow:0 4px 18px rgba(245,200,66,.4)}
+.bp:hover{transform:translateY(-2px)}
+.bs{background:var(--card);color:var(--tx);border:1.5px solid #4a2080}
+.bs:hover{background:#3a1870}
+.bd{background:linear-gradient(135deg,#ff6b6b,#c01010);color:#fff}
+.bg{background:linear-gradient(135deg,#5ef5a0,#00b560);color:#003020}
+/* WELCOME */
+#welcome{gap:15px;text-align:center}
+.logo{font-size:70px;animation:swing 3s ease-in-out infinite;display:block;filter:drop-shadow(0 0 16px #f5c842aa)}
+@keyframes swing{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.t1{font-size:clamp(1.8rem,6.5vw,2.8rem);font-weight:800;color:var(--a1);text-shadow:2px 2px 0 #7a2e00,0 0 24px #f5c84240;line-height:1.15;animation:fadeUp .8s .1s ease both}
+.t2{font-size:.88rem;color:var(--mu);animation:fadeUp .8s .25s ease both}
+.badge{background:var(--card);border:1px solid #4a2080;border-radius:12px;padding:9px 16px;font-size:.78rem;color:var(--mu);line-height:1.7;animation:fadeUp .8s .4s ease both}
+.badge strong{color:var(--a4);display:block;font-size:.88rem;font-weight:700}
+/* OTP */
+#otpScreen{gap:18px;text-align:center}
+.otp-card{background:var(--panel);border:2px solid #4a2080;border-radius:20px;padding:26px 20px;max-width:320px;width:100%;animation:popIn .4s ease}
+.otp-icon{font-size:2.8rem;margin-bottom:4px}
+.otp-title{font-size:1.3rem;font-weight:700;color:var(--a1);margin-bottom:5px}
+.otp-sub{font-size:.78rem;color:var(--mu);margin-bottom:18px;line-height:1.5}
+.otp-dots{display:flex;justify-content:center;gap:12px;margin-bottom:18px}
+.otp-dot{width:16px;height:16px;border-radius:50%;background:var(--card);border:2px solid #4a2080;transition:all .2s}
+.otp-dot.on{background:var(--a1);border-color:var(--a1);box-shadow:0 0 8px #f5c84280}
+.otp-dot.err{background:var(--a2);border-color:var(--a2);animation:errShake .35s ease}
+@keyframes errShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.otp-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.otp-key{background:var(--card);border:1.5px solid #4a2080;border-radius:12px;color:var(--tx);font-family:'Poppins',sans-serif;font-size:1.25rem;font-weight:600;padding:13px 0;cursor:pointer;transition:all .14s;user-select:none}
+.otp-key:hover{background:#3a1870}
+.otp-key:active{transform:scale(.93)}
+.otp-key.del{font-size:.92rem;color:var(--a2)}
+.otp-err{color:var(--a2);font-size:.78rem;min-height:18px;font-weight:600}
+.otp-att{color:var(--mu);font-size:.72rem;margin-top:3px}
+.lock-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:28px}
+.lock-ov.show{display:flex}
+/* LEVEL SELECT */
+#levelSelect{gap:13px}
+.stitle{font-size:1.6rem;font-weight:700;color:var(--a1);margin-bottom:3px}
+.lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%;max-width:390px}
+.lcard{background:var(--card);border:2px solid transparent;border-radius:var(--r);padding:13px 7px;cursor:pointer;transition:all .18s;text-align:center}
+.lcard.locked{opacity:.4;cursor:not-allowed}
+.lcard.done{border-color:var(--a3)}
+.lcard:not(.locked):hover{transform:translateY(-3px);background:#3a1870}
+.lnum{font-size:1.15rem;font-weight:700;color:var(--a1)}
+.lname{font-size:.7rem;color:var(--mu);margin-top:1px}
+.lstars{font-size:.85rem;margin-top:3px}
+/* TERM SELECT */
+#termSelect{gap:13px}
+.tcards{display:flex;flex-direction:column;gap:10px;width:100%;max-width:390px}
+.tcard{background:var(--card);border:2px solid transparent;border-radius:var(--r);padding:14px 18px;cursor:pointer;transition:all .18s;display:flex;justify-content:space-between;align-items:center}
+.tcard.locked{opacity:.4;cursor:not-allowed}
+.tcard.done{border-color:var(--a3)}
+.tcard.cur{border-color:var(--a1);box-shadow:0 0 12px #f5c84230}
+.tcard:not(.locked):hover{background:#3a1870;transform:translateX(4px)}
+.tn{font-weight:700;font-size:.95rem}
+.tp{font-size:.72rem;color:var(--mu)}
+/* GAME */
+#gameScreen{gap:8px;padding:10px;justify-content:flex-start;padding-top:12px}
+.ghdr{width:100%;display:flex;justify-content:space-between;align-items:center;background:var(--panel);border-radius:13px;padding:9px 13px}
+.glt{font-size:.65rem;color:var(--mu);text-transform:uppercase;letter-spacing:.07em}
+.glv{font-size:.95rem;font-weight:700;color:var(--a1)}
+.sl{font-size:.65rem;color:var(--mu)}
+.sv{font-size:1.05rem;font-weight:700;color:var(--a3)}
+.pbar{width:100%;background:var(--panel);border-radius:50px;height:7px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--a1),var(--a2));border-radius:50px;transition:width .4s ease}
+/* Gallows */
+.gw{position:relative;width:165px;height:148px}
+.gsv{width:100%;height:100%}
+.hp{stroke:#f0e8ff;stroke-width:3.5;stroke-linecap:round;fill:none;opacity:0;transition:opacity .3s}
+.hp.show{opacity:1}
+.hc{fill:none;stroke:#f0e8ff;stroke-width:3;opacity:0;transition:opacity .3s}
+.hc.show{opacity:1}
+/* HINT ROW – redesigned */
+.hint-box{width:100%;max-width:420px;background:var(--panel);border-radius:14px;padding:10px 13px;display:flex;flex-direction:column;gap:7px}
+.hint-top{display:flex;align-items:center;gap:10px}
+.hint-label{font-size:.7rem;font-weight:700;color:var(--a4);text-transform:uppercase;letter-spacing:.07em;flex-shrink:0}
+.hint-words{font-size:.85rem;color:var(--tx);line-height:1.45;flex:1}
+/* SPEAK BUTTON – big, obvious, separate row */
+.speak-btn{width:100%;background:linear-gradient(135deg,#64d8ff,#0077bb);border:none;border-radius:11px;padding:11px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;font-size:.88rem;color:#001828;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .16s;box-shadow:0 3px 14px rgba(100,216,255,.4)}
+.speak-btn:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(100,216,255,.6)}
+.speak-btn:active{transform:scale(.96)}
+.speak-btn.busy{background:linear-gradient(135deg,#ff9400,#f5c842);color:#1a0533;box-shadow:0 3px 14px rgba(245,200,66,.5)}
+.speak-icon{font-size:1.25rem}
+/* Word slots */
+.wdisp{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;width:100%;max-width:420px}
+.ls{width:29px;height:34px;border-bottom:3px solid var(--a1);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:var(--a1);transition:all .25s}
+.ls.rev{animation:popIn .3s ease}
+/* Keyboard */
+.keyboard{display:flex;flex-direction:column;gap:5px;width:100%;max-width:420px}
+.kbrow{display:flex;justify-content:center;gap:4px}
+.kk{font-family:'Poppins',sans-serif;background:var(--card);border:1.5px solid #4a2080;border-radius:9px;color:var(--tx);font-size:.9rem;font-weight:600;padding:7px 0;width:29px;cursor:pointer;transition:all .13s;text-align:center;user-select:none}
+.kk:hover:not(.used){background:#3a1870;transform:translateY(-2px)}
+.kk.ok{background:var(--a3);color:#003020;border-color:var(--a3)}
+.kk.no{background:#3d1010;color:#ff8888;border-color:#6d2020}
+.kk.used{cursor:not-allowed}
+.wl{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-height:24px}
+.wll{background:rgba(255,107,107,.15);color:#ff8888;border:1px solid #6d2020;border-radius:7px;padding:1px 8px;font-size:.8rem;font-weight:600}
+.hearts{display:flex;gap:5px;justify-content:center}
+.h{font-size:1.15rem;transition:all .3s}
+.h.lost{filter:grayscale(1);opacity:.3;transform:scale(.85)}
+/* Overlays */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;align-items:center;justify-content:center;padding:18px}
+.ov.show{display:flex}
+.ovc{background:var(--panel);border-radius:20px;padding:24px 20px;max-width:360px;width:100%;text-align:center;border:2px solid var(--card);animation:popIn .4s ease;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.oi{font-size:3rem;margin-bottom:6px}
+.ott{font-size:1.6rem;font-weight:700;margin-bottom:5px}
+.om{color:var(--mu);font-size:.85rem;margin-bottom:14px;line-height:1.5}
+.ow{font-size:1.35rem;font-weight:700;color:var(--a1);margin:6px 0}
+.obt{display:flex;flex-direction:column;gap:9px}
+/* Results */
+#resultsScreen{gap:14px;text-align:center}
+.rcard{background:var(--card);border-radius:var(--r);padding:20px 16px;width:100%;max-width:370px}
+.rscore{font-size:2.8rem;font-weight:800;color:var(--a1)}
+.rlbl{color:var(--mu);font-size:.82rem}
+.rstars{font-size:2.2rem;margin:7px 0}
+.rmsg{font-size:.9rem;font-weight:600}
+/* Misc */
+.sarea{overflow-y:auto;max-height:68vh;width:100%;max-width:410px}
+.sarea::-webkit-scrollbar{width:4px}
+.sarea::-webkit-scrollbar-thumb{background:#4a2080;border-radius:4px}
+.bk{position:absolute;top:14px;left:14px;background:none;border:none;color:var(--mu);font-size:1.45rem;cursor:pointer;z-index:10}
+.qc{font-size:.75rem;color:var(--mu)}
+/* FX */
+.confetti-p{position:fixed;pointer-events:none;z-index:200;animation:cfall 2.5s ease-in forwards}
+@keyframes cfall{0%{transform:translateY(-10px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+.wflash{position:fixed;inset:0;background:rgba(94,245,160,.18);pointer-events:none;z-index:99;animation:fflash .55s ease forwards}
+@keyframes fflash{0%{opacity:1}100%{opacity:0}}
+.shake{animation:shakeanim .45s ease}
+@keyframes shakeanim{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+/* Install guide */
+.install-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:5000;align-items:center;justify-content:center;padding:16px}
+.install-modal.show{display:flex}
+.install-card{background:#1e0a42;border:2px solid #f5c842;border-radius:22px;padding:24px 20px;max-width:360px;width:100%;max-height:92vh;overflow-y:auto}
+.install-card::-webkit-scrollbar{width:3px}
+.install-card::-webkit-scrollbar-thumb{background:#4a2080;border-radius:4px}
+.i-title{font-size:1.3rem;font-weight:800;color:#f5c842;text-align:center;margin-bottom:4px}
+.i-sub{font-size:.78rem;color:#9b82c4;text-align:center;margin-bottom:18px;line-height:1.5}
+.i-step{display:flex;align-items:flex-start;gap:12px;background:#2a1058;border-radius:14px;padding:13px 14px;margin-bottom:10px}
+.i-num{background:#f5c842;color:#1a0533;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0;margin-top:1px}
+.i-text{font-size:.82rem;color:#f0e8ff;line-height:1.55}
+.i-text strong{color:#f5c842}
+.i-text code{background:#0f0326;color:#64d8ff;padding:1px 6px;border-radius:5px;font-size:.78rem}
+.i-img{font-size:1.6rem;margin-right:4px;vertical-align:middle}
+.already-installed{background:rgba(94,245,160,.12);border:1px solid #5ef5a0;border-radius:12px;padding:10px 14px;font-size:.78rem;color:#5ef5a0;text-align:center;margin-bottom:12px;display:none}
+.already-installed.show{display:block}
+.btn-install-now{width:100%;background:linear-gradient(135deg,#f5c842,#ff9400);color:#1a0533;border:none;border-radius:50px;padding:14px;font-family:'Poppins',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;margin-bottom:10px;display:none}
+.btn-install-now.show{display:block}
+</style>
+</head>
+<body>
+<div class="stars" id="SC"></div>
+
+<!-- INSTALL GUIDE MODAL -->
+<div class="install-modal" id="installModal">
+  <div class="install-card">
+    <div class="i-title">📲 Install on Android</div>
+    <div class="i-sub">Chrome only shows "Add to Home screen" for <strong style="color:#f5c842">websites (https://)</strong> — not local files. Choose one free method below:</div>
+
+    <div class="already-installed" id="alreadyInstalled">✅ App is already installed on this device!</div>
+    <button class="btn-install-now" id="installNowBtn">⬇️ Install App Now (1 tap)</button>
+
+    <!-- Method 1 -->
+    <div style="background:#2a1058;border:1.5px solid #f5c842;border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="font-size:.82rem;font-weight:800;color:#f5c842;margin-bottom:8px">⭐ Method 1 — Netlify Drop (Easiest, 2 min)</div>
+      <div class="i-step"><div class="i-num">1</div><div class="i-text">On any device open Chrome and visit:<br><strong style="color:#64d8ff">app.netlify.com/drop</strong></div></div>
+      <div class="i-step"><div class="i-num">2</div><div class="i-text">Upload the <strong>hangman_game.html</strong> file — Netlify gives you a free <strong>https://</strong> link</div></div>
+      <div class="i-step"><div class="i-num">3</div><div class="i-text">Open that link in Chrome on this phone → tap <strong>⋮ menu</strong> → <strong>"Add to Home screen"</strong> ✅</div></div>
+      <div style="font-size:.72rem;color:#5ef5a0;margin-top:6px">✅ Free forever. Share the same link with all your customers on WhatsApp!</div>
+    </div>
+
+    <!-- Method 2 -->
+    <div style="background:#2a1058;border:1.5px solid #64d8ff;border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="font-size:.82rem;font-weight:800;color:#64d8ff;margin-bottom:8px">Method 2 — GitHub Pages (Free, Permanent)</div>
+      <div class="i-step"><div class="i-num">1</div><div class="i-text">Go to <strong>github.com</strong> → create free account → New repository named <strong>hangman</strong> (Public)</div></div>
+      <div class="i-step"><div class="i-num">2</div><div class="i-text">Upload <strong>hangman_game.html</strong>, rename it <strong>index.html</strong></div></div>
+      <div class="i-step"><div class="i-num">3</div><div class="i-text">Settings → Pages → Source: main → Save. Your link: <strong>yourusername.github.io/hangman</strong></div></div>
+      <div class="i-step"><div class="i-num">4</div><div class="i-text">Open that link in Chrome → <strong>⋮ menu</strong> → <strong>"Add to Home screen"</strong> ✅</div></div>
+    </div>
+
+    <!-- Method 3 -->
+    <div style="background:#2a1058;border:1.5px solid #9b82c4;border-radius:14px;padding:14px;margin-bottom:14px">
+      <div style="font-size:.82rem;font-weight:800;color:#9b82c4;margin-bottom:8px">Method 3 — Local WiFi (No Internet Needed)</div>
+      <div class="i-step"><div class="i-num">1</div><div class="i-text">Install <strong>"Simple HTTP Server"</strong> from Play Store on one phone</div></div>
+      <div class="i-step"><div class="i-num">2</div><div class="i-text">Start server, point to the file. Note the IP shown e.g. <strong>192.168.1.5:8080</strong></div></div>
+      <div class="i-step"><div class="i-num">3</div><div class="i-text">On customer's phone (same WiFi) open Chrome, type that IP → <strong>⋮</strong> → <strong>"Add to Home screen"</strong> ✅</div></div>
+      <div style="font-size:.72rem;color:#9b82c4;margin-top:6px">⚠️ Both phones must be on the same WiFi network</div>
+    </div>
+
+    <button onclick="document.getElementById('installModal').classList.remove('show')"
+      style="width:100%;background:#2a1058;border:1.5px solid #4a2080;border-radius:50px;padding:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:.9rem;color:#f0e8ff;cursor:pointer">
+      ✓ Got it — Close
+    </button>
+  </div>
+</div>
+
+<!-- WELCOME -->
+<div class="screen active" id="welcome">
+  <span class="logo">🎯</span>
+  <div class="t1">Hangman<br>Word Quest</div>
+  <div class="t2">Build reading skills — one word at a time!</div>
+  <div class="badge"><strong>Booming Point Multimedia Center</strong>📍 Bolgatanga &nbsp;|&nbsp; 📞 0244693396</div>
+  <button class="btn bp" style="margin-top:8px;font-size:1rem;padding:14px 42px" id="playBtn">▶ Play Now</button>
+  <button class="btn bs" style="margin-top:2px" id="progBtn">📊 My Progress</button>
+  <!-- Always-visible install button on welcome screen -->
+  <button class="btn" id="installGuideBtn" style="margin-top:6px;background:linear-gradient(135deg,#2a1058,#3a1870);color:#64d8ff;border:1.5px solid #64d8ff;font-size:.88rem;padding:11px 28px">
+    📲 Install as App
+  </button>
+</div>
+
+<!-- OTP -->
+<div class="screen" id="otpScreen">
+  <div class="otp-card">
+    <div class="otp-icon">🔐</div>
+    <div class="otp-title">Enter Access Code</div>
+    <div class="otp-sub">Enter the 4-digit code to unlock this app permanently on this device.</div>
+    <div class="otp-dots"><div class="otp-dot" id="d0"></div><div class="otp-dot" id="d1"></div><div class="otp-dot" id="d2"></div><div class="otp-dot" id="d3"></div></div>
+    <div class="otp-pad">
+      <button class="otp-key" data-k="1">1</button><button class="otp-key" data-k="2">2</button><button class="otp-key" data-k="3">3</button>
+      <button class="otp-key" data-k="4">4</button><button class="otp-key" data-k="5">5</button><button class="otp-key" data-k="6">6</button>
+      <button class="otp-key" data-k="7">7</button><button class="otp-key" data-k="8">8</button><button class="otp-key" data-k="9">9</button>
+      <span></span><button class="otp-key" data-k="0">0</button><button class="otp-key del" id="otpDel">⌫</button>
+    </div>
+    <div class="otp-err" id="otpErr"></div>
+    <div class="otp-att" id="otpAtt"></div>
+  </div>
+  <button class="btn bs" style="margin-top:10px" id="otpBack">← Back</button>
+</div>
+
+<!-- LOCKED -->
+<div class="lock-ov" id="lockOv">
+  <div style="font-size:3.5rem">🔒</div>
+  <div style="font-size:1.2rem;font-weight:700;color:var(--a2)">App Locked</div>
+  <div style="font-size:.85rem;color:var(--mu);max-width:280px;line-height:1.6">Too many wrong attempts.<br>Contact Booming Point Multimedia Center<br>📞 <strong style="color:var(--a4)">0244693396</strong></div>
+  <button class="btn bs" id="lockRetry">Try Again</button>
+</div>
+
+<!-- LEVEL SELECT -->
+<div class="screen" id="levelSelect">
+  <button class="bk" id="lvlBack">←</button>
+  <div class="stitle">Choose Level</div>
+  <div class="t2" style="margin-bottom:9px">Basic 1 easiest · Basic 9 hardest</div>
+  <div class="lgrid" id="lgrid"></div>
+</div>
+
+<!-- TERM SELECT -->
+<div class="screen" id="termSelect">
+  <button class="bk" id="termBack">←</button>
+  <div class="stitle" id="termTitle">Basic 1</div>
+  <div class="t2" style="margin-bottom:9px">Score 16/20 to advance each term</div>
+  <div class="tcards sarea" id="tcards"></div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="gameScreen">
+  <div class="ghdr">
+    <button class="btn bs" style="padding:5px 12px;font-size:.75rem" id="quitBtn">✕ Quit</button>
+    <div style="text-align:center"><div class="glt">Level</div><div class="glv" id="gLvl">Basic 1 – T1</div></div>
+    <div style="text-align:right"><div class="sl">Score</div><div class="sv" id="gScore">0</div></div>
+  </div>
+  <div style="width:100%;max-width:420px;display:flex;justify-content:space-between">
+    <span class="qc" id="qNum">Q 1/20</span><span class="qc" id="qOk">✅ 0</span>
+  </div>
+  <div class="pbar" style="max-width:420px"><div class="pfill" id="pFill" style="width:0%"></div></div>
+
+  <div style="display:flex;align-items:center;gap:20px">
+    <div class="gw">
+      <svg class="gsv" viewBox="0 0 120 130">
+        <line x1="10" y1="125" x2="110" y2="125" stroke="#6040a0" stroke-width="3" stroke-linecap="round"/>
+        <line x1="30" y1="125" x2="30"  y2="10"  stroke="#6040a0" stroke-width="3" stroke-linecap="round"/>
+        <line x1="30" y1="10"  x2="75"  y2="10"  stroke="#6040a0" stroke-width="3" stroke-linecap="round"/>
+        <line x1="75" y1="10"  x2="75"  y2="22"  stroke="#6040a0" stroke-width="3" stroke-linecap="round"/>
+        <circle id="p0" class="hc" cx="75" cy="32" r="10"/>
+        <line   id="p1" class="hp" x1="75" y1="42" x2="75" y2="78"/>
+        <line   id="p2" class="hp" x1="75" y1="52" x2="55" y2="65"/>
+        <line   id="p3" class="hp" x1="75" y1="52" x2="95" y2="65"/>
+        <line   id="p4" class="hp" x1="75" y1="78" x2="55" y2="100"/>
+        <line   id="p5" class="hp" x1="75" y1="78" x2="95" y2="100"/>
+        <line   id="p6" class="hp" x1="70" y1="28" x2="73" y2="31"/>
+        <line   id="p7" class="hp" x1="79" y1="28" x2="76" y2="31"/>
+        <path   id="p8" class="hp" d="M70 37 Q75 34 80 37"/>
+      </svg>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:7px">
+      <div style="font-size:.65rem;color:var(--mu);text-transform:uppercase;letter-spacing:.07em">Lives</div>
+      <div class="hearts" id="hearts"></div>
+    </div>
+  </div>
+
+  <!-- HINT BOX with always-visible text + big speak button -->
+  <div class="hint-box" style="max-width:420px">
+    <div class="hint-top">
+      <span class="hint-label">💡 Hint</span>
+      <span class="hint-words" id="hintTxt">—</span>
+    </div>
+    <button class="speak-btn" id="speakBtn">
+      <span class="speak-icon">🔊</span>
+      <span id="speakLabel">Tap to hear hint read aloud</span>
+    </button>
+  </div>
+
+  <div class="wdisp" id="wdisp"></div>
+  <div style="width:100%;max-width:420px">
+    <div style="font-size:.68rem;color:var(--mu);margin-bottom:3px">Wrong guesses:</div>
+    <div class="wl" id="wl"></div>
+  </div>
+  <div class="keyboard" id="kb"></div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="resultsScreen">
+  <div class="stitle" id="rTitle">Term Complete!</div>
+  <div class="rcard">
+    <div class="rscore" id="rScore">0</div>
+    <div class="rlbl">out of 20 correct</div>
+    <div class="rstars" id="rStars"></div>
+    <div class="rmsg" id="rMsg"></div>
+  </div>
+  <div id="rBtns" style="display:flex;flex-direction:column;gap:9px;width:100%;max-width:370px;margin-top:8px"></div>
+</div>
+
+<!-- WORD RESULT OVERLAY -->
+<div class="ov" id="wordOv">
+  <div class="ovc" id="wordOvC">
+    <div class="oi" id="ovIco">🎉</div>
+    <div class="ott" id="ovTit">Correct!</div>
+    <div class="ow" id="ovWrd"></div>
+    <div class="om" id="ovMsg"></div>
+    <div class="obt"><button class="btn bp" id="nextBtn">Next Word ➜</button></div>
+  </div>
+</div>
+
+<!-- QUIT OVERLAY -->
+<div class="ov" id="quitOv">
+  <div class="ovc">
+    <div class="oi">🚪</div>
+    <div class="ott">Quit Game?</div>
+    <div class="om">Your progress this round will be lost.</div>
+    <div class="obt">
+      <button class="btn bd" id="quitYes">Yes, Quit</button>
+      <button class="btn bs" id="quitNo">Keep Playing</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// SECURITY
+// ═══════════════════════════════════════
+const OTP='3056', MAX_ATT=5;
+const UK='bpmc_v2_unlock', LK='bpmc_v2_lock', AK='bpmc_v2_att';
+let otpBuf='';
+const ls_get=k=>{try{return localStorage.getItem(k)}catch{return null}};
+const ls_set=(k,v)=>{try{localStorage.setItem(k,v)}catch{}};
+const isUnlocked=()=>ls_get(UK)==='1';
+const isLocked=()=>ls_get(LK)==='1';
+const getAtt=()=>parseInt(ls_get(AK)||'0');
+
+function handlePlay(){
+  unlockAudio();
+  if(isLocked()){document.getElementById('lockOv').classList.add('show');return;}
+  if(isUnlocked()){buildLevels();showScreen('levelSelect');}
+  else{otpReset();showScreen('otpScreen');}
+}
+function otpReset(){
+  otpBuf='';updateDots();
+  document.getElementById('otpErr').textContent='';
+  const rem=MAX_ATT-getAtt();
+  document.getElementById('otpAtt').textContent=getAtt()>0?`Attempts left: ${rem}`:'';
+}
+function otpPress(d){
+  if(otpBuf.length>=4)return;
+  otpBuf+=d; updateDots();
+  if(otpBuf.length===4) setTimeout(checkOtp,160);
+}
+function otpDel(){otpBuf=otpBuf.slice(0,-1);updateDots();document.getElementById('otpErr').textContent='';}
+function updateDots(){
+  for(let i=0;i<4;i++){const el=document.getElementById('d'+i);el.classList.toggle('on',i<otpBuf.length);el.classList.remove('err');}
+}
+function checkOtp(){
+  if(otpBuf===OTP){
+    ls_set(UK,'1');ls_set(LK,'');ls_set(AK,'0');
+    for(let i=0;i<4;i++){const el=document.getElementById('d'+i);el.style.background='var(--a3)';el.style.borderColor='var(--a3)';}
+    playWin();
+    speak('Access granted! Welcome to Hangman Word Quest!',0.9,1.1);
+    setTimeout(()=>{buildLevels();showScreen('levelSelect');},1200);
+  } else {
+    let att=getAtt()+1; ls_set(AK,att);
+    for(let i=0;i<4;i++) document.getElementById('d'+i).classList.add('err');
+    playLose();
+    if(att>=MAX_ATT){
+      ls_set(LK,'1');
+      speak('Too many wrong attempts. The app is now locked.',0.82,0.95);
+      setTimeout(()=>document.getElementById('lockOv').classList.add('show'),500);
+    } else {
+      document.getElementById('otpErr').textContent='❌ Wrong code. Try again.';
+      document.getElementById('otpAtt').textContent=`Attempts left: ${MAX_ATT-att}`;
+      speak('Wrong code, please try again.',0.85,0.95);
+      setTimeout(()=>{otpBuf='';updateDots();},550);
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// AUDIO ENGINE (Web Audio API)
+// ═══════════════════════════════════════
+let AC=null;
+function unlockAudio(){
+  if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+  if(AC&&AC.state==='suspended')AC.resume();
+}
+function tones(notes,delay){
+  if(!AC)return; let t=AC.currentTime+(delay||0);
+  notes.forEach(n=>{
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g);g.connect(AC.destination);
+    o.type=n.t||'sine';o.frequency.value=n.f;
+    g.gain.setValueAtTime(n.v||.35,t);
+    g.gain.exponentialRampToValueAtTime(.001,t+n.d);
+    o.start(t);o.stop(t+n.d+.02);t+=n.d;
+  });
+}
+function playWin(){
+  unlockAudio();
+  tones([{f:523,d:.09,t:'triangle',v:.42},{f:659,d:.09,t:'triangle',v:.42},{f:784,d:.09,t:'triangle',v:.42},
+    {f:1047,d:.09,t:'triangle',v:.45},{f:1319,d:.18,t:'triangle',v:.5},{f:1568,d:.28,t:'triangle',v:.55}]);
+  if(!AC)return;
+  [2093,1760,2637,1975,2093,2637,1760].forEach((f,i)=>{
+    const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);
+    o.frequency.value=f;const st=AC.currentTime+.28+i*.07;
+    g.gain.setValueAtTime(.2,st);g.gain.exponentialRampToValueAtTime(.001,st+.18);o.start(st);o.stop(st+.2);
+  });
+  const sz=AC.sampleRate*.15,buf=AC.createBuffer(1,sz,AC.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<sz;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/sz,8);
+  const s=AC.createBufferSource(),g=AC.createGain();g.gain.value=.55;s.buffer=buf;s.connect(g);g.connect(AC.destination);s.start(AC.currentTime+.04);
+}
+function playLose(){
+  unlockAudio();
+  tones([{f:523,d:.14,v:.38},{f:466,d:.14,v:.38},{f:415,d:.14,v:.38},{f:370,d:.2,v:.38},{f:311,d:.42,v:.35}]);
+  if(!AC)return;
+  [233,277,349].forEach(f=>{
+    const o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);
+    o.type='triangle';o.frequency.value=f;const st=AC.currentTime+.68;
+    g.gain.setValueAtTime(.18,st);g.gain.exponentialRampToValueAtTime(.001,st+.9);o.start(st);o.stop(st+.95);
+  });
+}
+
+// ═══════════════════════════════════════
+// SPEECH  – the only reliable approach on Android Chrome
+// ═══════════════════════════════════════
+// We keep a single global utterance reference so we can cancel safely.
+let _utt = null;
+
+function speak(text, rate, pitch){
+  if(!('speechSynthesis' in window)||!text) return;
+  // Cancel any current speech
+  try{ window.speechSynthesis.cancel(); }catch(e){}
+  _utt = null;
+
+  // Use a timeout so cancel() has time to complete
+  setTimeout(()=>{
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang  = 'en-US';
+      u.rate  = typeof rate==='number'  ? rate  : 0.85;
+      u.pitch = typeof pitch==='number' ? pitch : 1.0;
+      u.volume = 1.0;
+
+      // Pick best available English voice
+      const voices = window.speechSynthesis.getVoices();
+      if(voices.length){
+        const en = voices.filter(v=>v.lang&&v.lang.startsWith('en'));
+        if(en.length){
+          // Prefer Google or built-in voices
+          const pick = en.find(v=>/google|english/i.test(v.name)) || en[0];
+          u.voice = pick;
+        }
+      }
+
+      _utt = u;
+      window.speechSynthesis.speak(u);
+
+      // Android Chrome bug: pauses mid-sentence – keep it alive
+      const ticker = setInterval(()=>{
+        if(!window.speechSynthesis.speaking){ clearInterval(ticker); return; }
+        if(window.speechSynthesis.paused) window.speechSynthesis.resume();
+      }, 250);
+      u.onend   = ()=>clearInterval(ticker);
+      u.onerror = ()=>clearInterval(ticker);
+    }catch(e){ console.warn('speak error',e); }
+  }, 100);
+}
+
+// Called by the big SPEAK button – must be wired via addEventListener (not onclick attr)
+// so it counts as a genuine user gesture on all browsers
+function doSpeakHint(){
+  unlockAudio();
+  const text = G.hint;
+  if(!text){ speak('No hint available.',0.9,1); return; }
+  const btn  = document.getElementById('speakBtn');
+  const lbl  = document.getElementById('speakLabel');
+  btn.classList.add('busy');
+  lbl.textContent = '🔈 Reading hint…';
+  speak(text, 0.80, 1.05);
+  // Restore button after generous delay based on text length
+  const ms = Math.max(2800, text.split(' ').length * 420);
+  setTimeout(()=>{ btn.classList.remove('busy'); lbl.textContent='Tap to hear hint read aloud'; }, ms);
+}
+
+// Pre-load voices as early as possible
+function preloadVoices(){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = ()=> window.speechSynthesis.getVoices();
+}
+
+// ═══════════════════════════════════════
+// WORD DATABASE  – 1080 words (120 per level × 9 levels)
+// ═══════════════════════════════════════
+const DB = {
+1:[
+{w:"cat",h:"A small furry pet that meows"},{w:"dog",h:"A loyal barking pet"},{w:"hat",h:"Worn on your head"},{w:"sun",h:"The bright star in our sky"},{w:"run",h:"Moving fast on your feet"},{w:"map",h:"A picture that shows places"},{w:"cup",h:"You drink from it"},{w:"ant",h:"A tiny hard-working insect"},{w:"bed",h:"You sleep on it at night"},{w:"bus",h:"A big vehicle for many people"},{w:"fan",h:"It blows cool air"},{w:"jam",h:"A sweet spread for bread"},{w:"leg",h:"You walk with it"},{w:"net",h:"Used to catch fish"},{w:"pot",h:"Used for cooking on a fire"},{w:"rat",h:"A small rodent with a long tail"},{w:"sit",h:"What you do on a chair"},{w:"tap",h:"Turn it to get water"},{w:"van",h:"A vehicle like a small bus"},{w:"wet",h:"Not dry; covered with water"},{w:"box",h:"A container with four sides"},{w:"fly",h:"To move through the air"},{w:"hen",h:"A female chicken"},{w:"ink",h:"Used in pens to write"},{w:"jug",h:"A container for pouring liquid"},{w:"kite",h:"A toy that flies in the wind"},{w:"log",h:"A thick piece of wood"},{w:"mud",h:"Wet dirty earth"},{w:"nap",h:"A short sleep"},{w:"oak",h:"A big strong tree"},{w:"peg",h:"Used to hang clothes on a line"},{w:"rug",h:"A small carpet on the floor"},{w:"sob",h:"To cry loudly"},{w:"tag",h:"A small label"},{w:"wax",h:"Used to make candles"},{w:"yam",h:"A root vegetable"},{w:"zip",h:"A fastener on clothes or bags"},{w:"bat",h:"A flying mammal active at night"},{w:"cap",h:"A hat with a brim"},{w:"den",h:"A cozy animal home"},{w:"fog",h:"Thick mist you can barely see through"},{w:"gap",h:"A space between two things"},{w:"hay",h:"Dry grass for feeding animals"},{w:"jar",h:"A glass container with a lid"},{w:"kid",h:"A young child or a baby goat"},{w:"lap",h:"Your thighs when you are seated"},{w:"mat",h:"A flat piece on the floor"},{w:"pad",h:"A flat writing book"},{w:"ram",h:"A male sheep"},{w:"sap",h:"Liquid that flows inside a tree"},{w:"tan",h:"A light brown colour"},{w:"wig",h:"Fake hair worn on the head"},{w:"zoo",h:"Where animals are kept for people to see"},{w:"bun",h:"A small round bread"},{w:"cot",h:"A small bed for a baby"},{w:"dew",h:"Tiny water drops on grass in the morning"},{w:"eel",h:"A long snake-like fish"},{w:"fig",h:"A sweet fruit with a soft inside"},{w:"gem",h:"A precious stone"},{w:"hut",h:"A small simple shelter"},{w:"bin",h:"A container for rubbish"},{w:"cab",h:"A taxi or the front of a truck"},{w:"dam",h:"A wall built across a river"},{w:"elm",h:"A tall tree with rough bark"},{w:"fin",h:"A flat part on a fish used for swimming"},{w:"gun",h:"A weapon that fires bullets"},{w:"hip",h:"The part of your body between your waist and thigh"},{w:"ivy",h:"A climbing plant that grows on walls"},{w:"jot",h:"To write something down quickly"},{w:"kin",h:"Your family or relatives"},{w:"lip",h:"The soft edge of your mouth"},{w:"map",h:"A drawing that shows places and roads"},{w:"nun",h:"A woman who lives in a religious community"},{w:"ore",h:"Rock that contains metal"},{w:"pen",h:"A tool for writing with ink"},{w:"row",h:"A line of things side by side"},{w:"sew",h:"To join fabric using needle and thread"},{w:"tin",h:"A metal container"},{w:"urge",h:"A strong feeling to do something"},{w:"vow",h:"A solemn promise"},{w:"wit",h:"Clever humour"},{w:"yak",h:"A large hairy ox from the mountains"},{w:"zap",h:"To hit something with electricity or a laser"},{w:"ark",h:"A large boat in a famous old story"},{w:"bay",h:"A curved area of sea between headlands"},{w:"cod",h:"A large edible sea fish"},{w:"doe",h:"A female deer"},{w:"eve",h:"The day or evening before an important day"},{w:"foe",h:"An enemy"},{w:"gum",h:"A sticky substance; also the flesh around your teeth"},{w:"ham",h:"Meat from a pig's leg"},{w:"imp",h:"A small mischievous creature"},{w:"jab",h:"A quick poke or an injection"},{w:"ken",h:"One's range of knowledge"},{w:"lad",h:"A boy or young man"},{w:"mop",h:"A tool for cleaning floors with water"},{w:"nod",h:"Moving your head up and down to say yes"},{w:"odd",h:"Strange or not even"},{w:"paw",h:"An animal's foot with claws"},{w:"rob",h:"To steal from someone"},{w:"sod",h:"A piece of ground covered with grass"},{w:"tug",h:"To pull something hard"},{w:"urn",h:"A large jar for storing things"},{w:"vim",h:"Energy and enthusiasm"},{w:"web",h:"A fine net made by a spider"},{w:"yew",h:"A dark evergreen tree"},{w:"zeal",h:"Great energy for a cause"}
+,{w:"axe",h:"A sharp tool for chopping wood"},{w:"beg",h:"To ask urgently for something"},{w:"cub",h:"A young bear lion or fox"},{w:"dip",h:"To put briefly into a liquid"},{w:"fib",h:"A small harmless lie"},{w:"gig",h:"A live music performance"},{w:"hop",h:"To jump on one foot"},{w:"jab",h:"A quick short punch or injection"},{w:"lair",h:"A wild animal's resting place"},{w:"orb",h:"A round ball-shaped object"}],
+2:[
+{w:"ball",h:"A round toy used in many games"},{w:"cake",h:"A sweet baked food for celebrations"},{w:"duck",h:"A bird that swims and quacks"},{w:"eggs",h:"Oval shapes laid by hens"},{w:"frog",h:"A jumping amphibian that croaks"},{w:"gift",h:"A present given to someone"},{w:"hill",h:"Raised land smaller than a mountain"},{w:"jump",h:"To push yourself off the ground"},{w:"king",h:"A male ruler of a country"},{w:"lamp",h:"A device that gives light"},{w:"milk",h:"A white drink from cows"},{w:"nest",h:"A bird's home for eggs"},{w:"open",h:"Not closed"},{w:"play",h:"To have fun"},{w:"rain",h:"Water that falls from clouds"},{w:"sand",h:"Fine grains found on beaches"},{w:"tree",h:"A tall plant with a trunk"},{w:"vase",h:"A container for flowers"},{w:"wind",h:"Moving air you can feel"},{w:"yarn",h:"Thick thread used for knitting"},{w:"zero",h:"The number that means nothing"},{w:"aunt",h:"Your parent's sister"},{w:"boot",h:"A strong shoe covering the ankle"},{w:"coin",h:"A round metal piece of money"},{w:"deer",h:"A graceful animal with antlers"},{w:"farm",h:"Where crops and animals are kept"},{w:"gate",h:"A door in a fence or wall"},{w:"hive",h:"Where bees live and make honey"},{w:"iron",h:"A heavy metal; also smooths clothes"},{w:"joke",h:"Something said to make people laugh"},{w:"leaf",h:"A flat green part of a plant"},{w:"moon",h:"The round object in the night sky"},{w:"nose",h:"You use it to smell"},{w:"oven",h:"Used to bake or roast food"},{w:"pool",h:"A body of water for swimming"},{w:"road",h:"A path for vehicles"},{w:"seed",h:"Planted in soil to grow a plant"},{w:"tail",h:"The back end of an animal"},{w:"vine",h:"A climbing plant"},{w:"wolf",h:"A wild animal related to the dog"},{w:"yard",h:"An outdoor area beside a house"},{w:"army",h:"A large group of soldiers"},{w:"bone",h:"Hard white parts inside your body"},{w:"clay",h:"Soft wet earth used to make pots"},{w:"dock",h:"A place where ships stop"},{w:"fish",h:"An animal that lives underwater"},{w:"goat",h:"A horned animal that gives milk"},{w:"hare",h:"An animal like a fast rabbit"},{w:"jail",h:"Where people are locked up"},{w:"knot",h:"A fastening made by tying rope"},{w:"lime",h:"A small sour green fruit"},{w:"mole",h:"A digging animal that lives underground"},{w:"name",h:"What you are called"},{w:"flag",h:"A piece of cloth representing a country"},{w:"glue",h:"A sticky substance to join things"},{w:"hand",h:"At the end of your arm with fingers"},{w:"bell",h:"A hollow metal object that rings"},{w:"bird",h:"A feathered animal that usually flies"},{w:"boat",h:"A vehicle that travels on water"},{w:"corn",h:"A yellow grain crop on tall stalks"},{w:"dart",h:"A pointed object thrown at a board"},{w:"edge",h:"The thin outer part of something"},{w:"fern",h:"A leafy green plant that has no flowers"},{w:"glow",h:"A soft steady light"},{w:"herb",h:"A plant used in cooking or medicine"},{w:"inch",h:"A small unit of length"},{w:"jade",h:"A green precious stone"},{w:"kelp",h:"A large seaweed"},{w:"lace",h:"A delicate fabric with a pattern of holes"},{w:"mast",h:"A tall pole on a ship"},{w:"newt",h:"A small amphibian like a lizard"},{w:"opal",h:"A precious stone with many colours"},{w:"plow",h:"A farm tool used to turn soil"},{w:"quiz",h:"A test of knowledge"},{w:"reef",h:"A chain of rocks or coral near the sea surface"},{w:"seal",h:"A sea animal that flaps its flippers"},{w:"toad",h:"An amphibian like a frog with dry skin"},{w:"undo",h:"To reverse something already done"},{w:"vale",h:"A valley between hills"},{w:"wasp",h:"A stinging flying insect"},{w:"xray",h:"A beam that can pass through the body"},{w:"yolk",h:"The yellow part of an egg"},{w:"zinc",h:"A shiny bluish-white metal"},{w:"acre",h:"A measure of land area"},{w:"bale",h:"A large bundle of hay or straw"},{w:"claw",h:"A sharp curved nail on an animal's paw"},{w:"dove",h:"A white bird that is a symbol of peace"},{w:"earl",h:"A British nobleman of high rank"},{w:"felt",h:"A thick woollen fabric; or past tense of feel"},{w:"golf",h:"A sport played on grass with clubs and a ball"},{w:"hawk",h:"A large bird of prey"},{w:"ibis",h:"A long-legged wading bird"},{w:"jury",h:"A group of people who decide a legal case"},{w:"kelp",h:"A type of large brown seaweed"},{w:"lynx",h:"A wild cat with spotted fur and a short tail"},{w:"mare",h:"A female horse"},{w:"nave",h:"The main part of a church"},{w:"orca",h:"A large black and white whale; a killer whale"},{w:"puma",h:"A large wild cat also called a mountain lion"},{w:"quay",h:"A platform beside water where ships tie up"},{w:"rook",h:"A large black bird; also a chess piece"},{w:"sage",h:"A herb used in cooking; also a wise person"},{w:"teak",h:"A very hard wood from a tropical tree"},{w:"ulna",h:"One of the two bones in your forearm"},{w:"veld",h:"Open grassland found in southern Africa"},{w:"wren",h:"A tiny brown singing bird"},{w:"yurt",h:"A round portable tent used in Central Asia"}
+,{w:"barn",h:"A large building on a farm"},{w:"curl",h:"A spiral or curved shape"},{w:"dusk",h:"The time just after sunset"},{w:"fawn",h:"A young deer or pale brown colour"},{w:"gust",h:"A sudden strong rush of wind"},{w:"helm",h:"The wheel used to steer a ship"},{w:"idol",h:"A person who is greatly admired"},{w:"jest",h:"To speak or act in a playful way"},{w:"keel",h:"The bottom part of a ship"},{w:"loft",h:"A room just below a roof"}],
+3:[
+{w:"apple",h:"A round fruit that grows on a tree"},{w:"bread",h:"A baked food made from flour"},{w:"cloud",h:"White fluffy masses in the sky"},{w:"dance",h:"Moving your body to music"},{w:"earth",h:"The planet we live on"},{w:"flame",h:"The bright burning part of a fire"},{w:"grade",h:"A level or mark given in school"},{w:"house",h:"A building where a family lives"},{w:"image",h:"A picture or representation"},{w:"juice",h:"A drink made from crushed fruits"},{w:"knife",h:"A sharp cutting tool"},{w:"lemon",h:"A sour yellow citrus fruit"},{w:"money",h:"Coins and notes used to buy things"},{w:"night",h:"The dark time after sunset"},{w:"ocean",h:"A very large body of salt water"},{w:"plant",h:"A living thing that grows in soil"},{w:"queen",h:"A female ruler of a kingdom"},{w:"river",h:"A large natural flow of water"},{w:"shirt",h:"Clothing worn on the upper body"},{w:"table",h:"A flat surface on legs"},{w:"uncle",h:"Your parent's brother"},{w:"voice",h:"The sound you make when you speak"},{w:"water",h:"The clear liquid we drink"},{w:"youth",h:"The period of being young"},{w:"zebra",h:"A striped animal from Africa"},{w:"alarm",h:"A warning sound or device"},{w:"beach",h:"Sandy area next to the sea"},{w:"chair",h:"A seat with a back"},{w:"dress",h:"Clothing worn by girls and women"},{w:"elbow",h:"The joint in the middle of your arm"},{w:"flute",h:"A musical instrument you blow across"},{w:"globe",h:"A round model of the Earth"},{w:"heart",h:"The organ that pumps your blood"},{w:"jewel",h:"A precious stone like a diamond"},{w:"light",h:"Brightness from the sun or a bulb"},{w:"mango",h:"A sweet tropical fruit"},{w:"nurse",h:"A person who cares for sick people"},{w:"olive",h:"A small fruit used in cooking"},{w:"paint",h:"Coloured liquid used to decorate"},{w:"rainy",h:"Weather with lots of rain"},{w:"snail",h:"A slow creature that carries its shell"},{w:"tiger",h:"A large wild striped cat"},{w:"upset",h:"Feeling sad or worried"},{w:"wheat",h:"A grain used to make flour and bread"},{w:"angel",h:"A spiritual being often shown with wings"},{w:"blaze",h:"A large bright fire"},{w:"chest",h:"A large storage box; also the front of your body"},{w:"eagle",h:"A large powerful bird of prey"},{w:"feast",h:"A large special meal"},{w:"giant",h:"Something or someone very large"},{w:"honey",h:"Sweet sticky liquid made by bees"},{w:"ivory",h:"The white material from elephant tusks"},{w:"joker",h:"Someone who tells jokes"},{w:"magic",h:"Mysterious powers to make things happen"},{w:"north",h:"One of the four compass directions"},{w:"piano",h:"A large musical instrument with keys"},{w:"grape",h:"A small juicy fruit in clusters"},{w:"storm",h:"Bad weather with strong winds and rain"},{w:"sword",h:"A weapon with a long sharp blade"},{w:"towel",h:"A soft cloth used to dry yourself"},{w:"brave",h:"Ready to face danger without fear"},{w:"camel",h:"A desert animal with humps on its back"},{w:"derby",h:"A horse race or sporting competition"},{w:"ember",h:"A glowing piece of burning wood"},{w:"fjord",h:"A long narrow sea inlet between cliffs"},{w:"guava",h:"A tropical fruit with pink flesh"},{w:"hippo",h:"A large river animal with a huge mouth"},{w:"ivory",h:"Creamy white colour like elephant tusks"},{w:"joust",h:"A medieval competition on horseback"},{w:"koala",h:"An Australian animal that eats eucalyptus"},{w:"llama",h:"A South American animal used to carry loads"},{w:"maize",h:"Corn; a cereal crop with yellow grains"},{w:"noble",h:"Having high moral qualities; also a person of high rank"},{w:"orbit",h:"The curved path an object takes around another in space"},{w:"peach",h:"A soft sweet fruit with a fuzzy skin"},{w:"quill",h:"A feather used as a pen; also a spine on a porcupine"},{w:"ridge",h:"A long narrow hilltop"},{w:"scone",h:"A small baked cake often eaten with tea"},{w:"thyme",h:"An aromatic herb used in cooking"},{w:"udder",h:"The organ of a cow from which milk is obtained"},{w:"viola",h:"A stringed musical instrument like a large violin"},{w:"waltz",h:"A graceful ballroom dance in three-four time"},{w:"xylem",h:"The tissue in plants that carries water upward"},{w:"yodel",h:"A singing style with rapid changes between high and low notes"},{w:"zloty",h:"The currency of Poland"},{w:"abbot",h:"The head of a monastery"},{w:"birch",h:"A slender tree with white peeling bark"},{w:"chess",h:"A board game with kings, queens, and pawns"},{w:"dwarf",h:"A very small person or creature"},{w:"extra",h:"More than is usual; an addition"},{w:"froth",h:"A mass of small bubbles on liquid"},{w:"glove",h:"A covering for the hand with separate fingers"},{w:"heron",h:"A large wading bird with long legs"},{w:"ingot",h:"A block of metal like gold or silver"},{w:"joust",h:"A fight on horseback between two knights"},{w:"knave",h:"A dishonest person; the jack in a pack of cards"},{w:"lithe",h:"Moving easily and gracefully; flexible"},{w:"moose",h:"A very large deer found in North America"},{w:"nymph",h:"A mythological spirit of nature living in rivers or woods"},{w:"ozone",h:"A gas in the atmosphere that protects the Earth from radiation"}
+,{w:"blunt",h:"Not sharp; also speaking very directly"},{w:"chant",h:"A repeated rhythmic song or phrase"},{w:"drape",h:"To hang cloth loosely over something"},{w:"flair",h:"A natural talent for something"},{w:"hatch",h:"A small opening or for an egg to open"},{w:"infer",h:"To work out something from evidence"},{w:"knack",h:"A special skill or talent"},{w:"lodge",h:"A small house in the country"},{w:"mourn",h:"To feel deep sadness after a loss"},{w:"naive",h:"Lacking experience or judgement"}],
+4:[
+{w:"basket",h:"A woven container"},{w:"castle",h:"A large stone building where kings lived"},{w:"desert",h:"A very dry land with little rain"},{w:"engine",h:"A machine that produces power"},{w:"finger",h:"One of five parts at the end of your hand"},{w:"garden",h:"A piece of land where plants grow"},{w:"hammer",h:"A tool with a heavy metal head"},{w:"insect",h:"A small creature with six legs"},{w:"jungle",h:"A thick tropical forest"},{w:"kettle",h:"A pot used to boil water"},{w:"ladder",h:"A frame of steps used to climb"},{w:"market",h:"A place where goods are sold"},{w:"nature",h:"The natural world including plants and animals"},{w:"parrot",h:"A colourful bird that mimics speech"},{w:"rabbit",h:"A small furry animal with long ears"},{w:"silver",h:"A shiny grey precious metal"},{w:"tunnel",h:"An underground passage"},{w:"winter",h:"The coldest season of the year"},{w:"yellow",h:"The colour of the sun or bananas"},{w:"zipper",h:"A fastener with interlocking teeth"},{w:"bridge",h:"A structure to cross over water or a gap"},{w:"candle",h:"A wax stick with a wick that burns"},{w:"donkey",h:"A working animal related to the horse"},{w:"escape",h:"To get away from a dangerous place"},{w:"falcon",h:"A fast bird of prey"},{w:"grapes",h:"Small round fruits that grow in clusters"},{w:"helmet",h:"A hard hat to protect the head"},{w:"island",h:"Land surrounded by water"},{w:"jigsaw",h:"A puzzle made of cut-up pieces"},{w:"kitten",h:"A baby cat"},{w:"mirror",h:"A glass surface that reflects your image"},{w:"needle",h:"A thin pointed tool used for sewing"},{w:"pencil",h:"A writing tool with a graphite centre"},{w:"riddle",h:"A puzzle question with a clever answer"},{w:"saddle",h:"A leather seat placed on a horse"},{w:"temple",h:"A building used for worship"},{w:"velvet",h:"A soft smooth fabric"},{w:"walnut",h:"A wrinkled nut inside a hard shell"},{w:"anchor",h:"A heavy device to keep a ship in place"},{w:"coffee",h:"A popular hot drink from roasted beans"},{w:"drawer",h:"A sliding compartment in furniture"},{w:"fabric",h:"Cloth used for making clothes"},{w:"ginger",h:"A spicy root used in cooking"},{w:"hunter",h:"A person or animal that hunts"},{w:"locket",h:"A small ornamental case on a necklace"},{w:"muffin",h:"A small round baked cake"},{w:"noodle",h:"A long thin strip of pasta"},{w:"oyster",h:"A shellfish that can produce pearls"},{w:"pebble",h:"A small smooth rounded stone"},{w:"rocket",h:"A vehicle powered by burning fuel"},{w:"sunset",h:"When the sun goes below the horizon"},{w:"target",h:"Something you aim at"},{w:"useful",h:"Something that helps you"},{w:"vacuum",h:"A space with no air; also a floor cleaner"},{w:"window",h:"A glass opening in a wall"},{w:"butter",h:"A yellow fat spread on bread"},{w:"yearly",h:"Happening once every year"},{w:"pocket",h:"A small bag sewn into clothing"},{w:"dinner",h:"The main meal of the day"},{w:"abacus",h:"A frame with beads used for counting"},{w:"banter",h:"Friendly teasing conversation"},{w:"cobalt",h:"A hard bluish-grey metal; also a deep blue colour"},{w:"debris",h:"Scattered pieces of rubbish or wreckage"},{w:"enamel",h:"A hard shiny coating on teeth or metalwork"},{w:"famine",h:"A severe shortage of food over a wide area"},{w:"goblin",h:"A small mischievous creature in folklore"},{w:"hanger",h:"A frame used to hang clothes"},{w:"impact",h:"A forceful effect or the act of hitting"},{w:"jockey",h:"A rider in a horse race"},{w:"kernel",h:"The inner seed of a nut or grain"},{w:"lagoon",h:"A shallow body of water near the sea"},{w:"magnet",h:"An object that attracts iron"},{w:"napkin",h:"A small cloth or paper used at meals"},{w:"oolong",h:"A type of Chinese tea"},{w:"parlor",h:"A sitting room for receiving guests"},{w:"quartz",h:"A hard mineral found in many rocks"},{w:"ridges",h:"Long narrow raised areas on a surface"},{w:"sponge",h:"A soft porous material used for washing"},{w:"tartan",h:"A pattern of crossed coloured stripes on cloth"},{w:"turban",h:"A long cloth wound around the head"},{w:"umbra",h:"The darkest part of a shadow"},{w:"vendor",h:"A person who sells goods"},{w:"wampum",h:"Beads used as currency by some Native Americans"},{w:"xyster",h:"A surgical tool for scraping bones"},{w:"yorker",h:"A type of cricket delivery aimed at the batsman's feet"},{w:"zealot",h:"A person who follows a cause with great enthusiasm"},{w:"anklet",h:"A piece of jewellery worn around the ankle"},{w:"bonnet",h:"A type of hat that ties under the chin; also a car hood"},{w:"cornet",h:"A brass musical instrument like a trumpet"},{w:"dagger",h:"A short sharp double-edged knife"},{w:"earing",h:"An ornament worn on the ear"},{w:"fillet",h:"A strip of meat or fish with no bones"},{w:"gannet",h:"A large seabird known for diving into the sea"},{w:"hurdle",h:"A frame to jump over in a race"},{w:"ingrid",h:"A Scandinavian name meaning fair and beautiful"},{w:"jostle",h:"To push and bump against people in a crowd"},{w:"kibble",h:"Coarsely ground grain or dry pet food"},{w:"lintel",h:"The horizontal beam above a door or window"},{w:"musket",h:"An early type of long-barrelled firearm"},{w:"nougat",h:"A sweet chewy confection made with nuts"},{w:"outcry",h:"A strong public reaction of protest or anger"},{w:"punnet",h:"A small basket for soft fruits like strawberries"},{w:"quorum",h:"The minimum number of people needed to make a meeting valid"},{w:"rosary",h:"A string of beads used for counting prayers"},{w:"salami",h:"A type of cured meat sausage sliced thinly"},{w:"tallow",h:"Hard animal fat used to make candles or soap"},{w:"uncork",h:"To remove the cork from a bottle"}
+,{w:"cactus",h:"A spiky plant that stores water"},{w:"fathom",h:"A measure of water depth"},{w:"garlic",h:"A strong-smelling bulb used in cooking"},{w:"hamper",h:"A large basket for food or laundry"},{w:"jangle",h:"To make a ringing metallic noise"},{w:"kidney",h:"An organ in your body that filters waste"},{w:"linger",h:"To stay somewhere longer than necessary"},{w:"mallet",h:"A hammer with a large wooden head"},{w:"nugget",h:"A small lump of gold or other metal"},{w:"oodles",h:"A very large amount of something"}],
+5:[
+{w:"balance",h:"The ability to stay steady without falling"},{w:"cabinet",h:"Furniture with shelves or drawers"},{w:"diamond",h:"A very hard precious sparkling gem"},{w:"eclipse",h:"When one heavenly body blocks another's light"},{w:"feather",h:"A light flat structure covering birds"},{w:"garbage",h:"Waste material; rubbish"},{w:"harvest",h:"Gathering crops when they are ready"},{w:"journey",h:"Travel from one place to another"},{w:"kitchen",h:"The room where food is prepared"},{w:"lantern",h:"A portable lamp enclosed in glass"},{w:"machine",h:"A device with moving parts that does work"},{w:"mystery",h:"Something unexplained or unknown"},{w:"network",h:"A system of connected things"},{w:"opinion",h:"What a person thinks about something"},{w:"patient",h:"Able to wait calmly; or someone in hospital"},{w:"quarter",h:"One of four equal parts"},{w:"rainbow",h:"An arc of colours in the sky after rain"},{w:"silence",h:"Complete quietness"},{w:"tornado",h:"A violent rotating column of air"},{w:"uniform",h:"Clothing worn by members of a group"},{w:"vampire",h:"A mythical creature that drinks blood"},{w:"weather",h:"Conditions outside like sun or rain"},{w:"example",h:"Something that shows what others are like"},{w:"arrange",h:"To put things in a particular order"},{w:"battery",h:"A device that stores electricity"},{w:"captain",h:"The leader of a team or ship"},{w:"deliver",h:"To bring something to a person or place"},{w:"element",h:"A basic substance that cannot be broken down"},{w:"fiction",h:"Stories that are made up"},{w:"history",h:"The study of past events"},{w:"imagine",h:"To form a picture in your mind"},{w:"kingdom",h:"A country ruled by a king or queen"},{w:"loyalty",h:"Being faithful and devoted to someone"},{w:"measure",h:"To find the size or amount of something"},{w:"percent",h:"A rate per hundred"},{w:"quality",h:"How good or bad something is"},{w:"receipt",h:"Proof that you paid for something"},{w:"servant",h:"A person employed to work in a household"},{w:"texture",h:"The feel or look of a surface"},{w:"upright",h:"Vertical position; also honest and good"},{w:"village",h:"A small community smaller than a town"},{w:"witness",h:"A person who sees an event"},{w:"abdomen",h:"The lower part of the body"},{w:"bicycle",h:"A two-wheeled vehicle powered by pedals"},{w:"ceiling",h:"The inner upper surface of a room"},{w:"erosion",h:"Wearing away of land by water or wind"},{w:"genuine",h:"Real and true; not fake"},{w:"horizon",h:"Where the sky meets the earth"},{w:"jasmine",h:"A plant with sweet-smelling flowers"},{w:"furnace",h:"A large enclosed fire for heating"},{w:"grumble",h:"To complain in a low unhappy voice"},{w:"inspect",h:"To look carefully at something"},{w:"jealous",h:"Unhappy because someone has something you want"},{w:"monarch",h:"A king, queen, or emperor"},{w:"neglect",h:"To fail to care for something"},{w:"orchard",h:"An area of land where fruit trees grow"},{w:"pilgrim",h:"A person who travels to a holy place"},{w:"quarrel",h:"An angry argument"},{w:"reunion",h:"A gathering of people who have been apart"},{w:"lanyard",h:"A cord worn around the neck"},{w:"absolve",h:"To formally set someone free from guilt"},{w:"bizarre",h:"Very strange or unusual"},{w:"circuit",h:"A complete path around which electricity flows"},{w:"despair",h:"The complete loss of hope"},{w:"estuary",h:"The wide mouth of a river where it meets the sea"},{w:"fervent",h:"Having or showing intense feeling"},{w:"glacier",h:"A large slow-moving mass of ice"},{w:"habitat",h:"The natural home of an animal or plant"},{w:"iceberg",h:"A large mass of ice floating in the sea"},{w:"javelin",h:"A long spear thrown in athletics"},{w:"kinship",h:"A close connection and relationship"},{w:"latency",h:"A delay before a transfer of data begins"},{w:"midwife",h:"A person trained to assist during childbirth"},{w:"neutron",h:"A particle in the nucleus of an atom with no charge"},{w:"obscure",h:"Not well known; difficult to understand"},{w:"pasture",h:"Land covered with grass used for grazing"},{w:"querida",h:"A term of endearment meaning beloved in Spanish"},{w:"rapture",h:"A feeling of intense joy or delight"},{w:"solvent",h:"A liquid used to dissolve other substances"},{w:"tangent",h:"A line that touches a curve at one point; or going off topic"},{w:"urgency",h:"The importance requiring swift action"},{w:"valiant",h:"Possessing or showing courage and determination"},{w:"warpath",h:"A course of action that is likely to lead to conflict"},{w:"yttrium",h:"A silvery-white metallic element"},{w:"zealous",h:"Having great energy and enthusiasm"},{w:"abolish",h:"To formally put an end to a system or practice"},{w:"bedrock",h:"The solid rock beneath loose deposits"},{w:"combine",h:"To bring or join things together"},{w:"dynasty",h:"A line of rulers from the same family"},{w:"eclipse",h:"When the moon blocks the sun's light"},{w:"frenzy",h:"A state of wild or frantic excitement"},{w:"granite",h:"A very hard rock used in building"},{w:"hostage",h:"A person held captive as security"},{w:"integer",h:"A whole number without decimals"},{w:"jubilee",h:"A special anniversary celebration"},{w:"keynote",h:"The main theme of a speech or meeting"},{w:"lineage",h:"Direct descent from an ancestor"},{w:"mansion",h:"A large grand house"},{w:"nucleus",h:"The central and most important part; also in an atom or cell"},{w:"ominous",h:"Giving the impression that something bad will happen"},{w:"paradox",h:"A statement that seems contradictory but may be true"}
+,{w:"buckle",h:"A fastening device for a belt"},{w:"clumsy",h:"Moving without grace; awkward"},{w:"feisty",h:"Brave and determined"},{w:"giggle",h:"A light silly laugh"},{w:"hobble",h:"To walk with difficulty"},{w:"impede",h:"To delay or prevent progress"},{w:"kindle",h:"To start a fire or arouse a feeling"},{w:"lavish",h:"Rich and elaborate; to give generously"},{w:"mingle",h:"To mix or be involved with others"},{w:"nuzzle",h:"To press or rub gently with the nose"}],
+6:[
+{w:"absolute",h:"Complete and total with no doubt"},{w:"beginner",h:"Someone just starting to learn something"},{w:"calendar",h:"A chart showing days and months"},{w:"dialogue",h:"A conversation between people"},{w:"engineer",h:"A person who designs and builds things"},{w:"familiar",h:"Well known to you"},{w:"generous",h:"Happy to give more than expected"},{w:"heritage",h:"Traditions passed down through generations"},{w:"identify",h:"To recognise who or what something is"},{w:"jealousy",h:"Unhappiness because someone has something you want"},{w:"keyboard",h:"A set of keys for typing or music"},{w:"language",h:"A system of communication"},{w:"magnetic",h:"Having the property of attracting iron"},{w:"national",h:"Relating to the whole country"},{w:"obstacle",h:"Something that stands in the way"},{w:"physical",h:"Relating to the body or things you can touch"},{w:"quantity",h:"An amount or number of something"},{w:"relative",h:"A family member; or compared to something else"},{w:"schedule",h:"A plan of when things should happen"},{w:"treasure",h:"A collection of valuable things"},{w:"umbrella",h:"Held above the head to keep off rain"},{w:"violence",h:"Using force in a harmful way"},{w:"audience",h:"People watching or listening to a performance"},{w:"boundary",h:"A line that marks the limit of an area"},{w:"champion",h:"A person or team that wins a competition"},{w:"dedicate",h:"To give time and effort to something important"},{w:"evidence",h:"Facts that prove something is true"},{w:"fraction",h:"A part of a whole number"},{w:"guardian",h:"A person who looks after someone"},{w:"humorous",h:"Causing laughter; funny"},{w:"innocent",h:"Not guilty"},{w:"knowledge",h:"Information gained through learning"},{w:"literary",h:"Relating to books and writing"},{w:"momentum",h:"The force that keeps something moving"},{w:"original",h:"The first; not copied"},{w:"patience",h:"The ability to wait without getting upset"},{w:"reliable",h:"Can be trusted to do what is needed"},{w:"strategy",h:"A plan to achieve a goal"},{w:"truthful",h:"Telling the truth; honest"},{w:"universe",h:"All of space including everything in it"},{w:"valuable",h:"Worth a lot of money or very important"},{w:"adequate",h:"Enough for a purpose"},{w:"blizzard",h:"A severe snowstorm with strong winds"},{w:"chemical",h:"A substance used in chemistry"},{w:"diplomat",h:"A person who represents their country abroad"},{w:"equation",h:"A mathematical statement of equality"},{w:"festival",h:"A special celebration or event"},{w:"glorious",h:"Having great beauty or success"},{w:"hydrogen",h:"The lightest chemical element"},{w:"juvenile",h:"A young person"},{w:"labyrinth",h:"A complicated maze-like network of paths"},{w:"medicine",h:"A substance taken to treat illness"},{w:"nautical",h:"Relating to ships and sailors"},{w:"organism",h:"A living thing"},{w:"quotient",h:"The answer when you divide one number by another"},{w:"rational",h:"Based on clear thinking"},{w:"skeleton",h:"The framework of bones in a body"},{w:"tropical",h:"Relating to hot wet regions near the equator"},{w:"ultimate",h:"The most extreme or final"},{w:"paranoid",h:"Feeling unreasonably suspicious or afraid"},{w:"acoustic",h:"Relating to sound or the sense of hearing"},{w:"breviary",h:"A book containing daily prayers"},{w:"colonial",h:"Relating to a colony ruled by another country"},{w:"decimate",h:"To kill or destroy a large proportion of"},{w:"epidemic",h:"A widespread outbreak of disease"},{w:"forensic",h:"Relating to scientific methods used in crime investigation"},{w:"geometry",h:"The branch of mathematics dealing with shapes"},{w:"heritage",h:"Property that is or may be inherited"},{w:"iambic",h:"A metrical foot used in poetry"},{w:"jubilant",h:"Feeling or expressing great happiness"},{w:"kinetics",h:"The study of motion and its causes"},{w:"lethargy",h:"A lack of energy and enthusiasm"},{w:"meditate",h:"To focus the mind in silence for relaxation"},{w:"nuisance",h:"A person or thing causing inconvenience"},{w:"obsolete",h:"No longer produced or used"},{w:"parabola",h:"A symmetrical open curve formed when a cone is cut"},{w:"quotient",h:"The number resulting from dividing one number by another"},{w:"rigorous",h:"Extremely thorough and careful"},{w:"sediment",h:"Matter that settles to the bottom of a liquid"},{w:"tenacity",h:"The quality of being very determined"},{w:"ulterior",h:"Existing beyond what is obvious; hidden"},{w:"varicose",h:"Abnormally swollen and twisted veins"},{w:"wisteria",h:"A climbing plant with clusters of purple flowers"},{w:"xenolith",h:"A piece of rock embedded in another rock"},{w:"yearbook",h:"A book published each year recording events"},{w:"zirconia",h:"A hard white crystalline compound used in ceramics"},{w:"amenable",h:"Open and responsive to suggestion"},{w:"beholden",h:"Owing thanks or having a duty to someone"},{w:"corridor",h:"A long passage in a building or train"},{w:"displace",h:"To move something from its position"},{w:"embezzle",h:"To steal money entrusted to one's care"},{w:"forensic",h:"Using science to investigate crimes"},{w:"gradiant",h:"A slope or the rate of change"},{w:"handsome",h:"Good-looking; also large and impressive"},{w:"ignition",h:"The action of setting something on fire"},{w:"jettison",h:"To throw or drop something from a moving vehicle"},{w:"latitude",h:"Distance north or south of the equator"},{w:"manifold",h:"Many and various; also a pipe with several openings"},{w:"notation",h:"A system of symbols used to represent information"}
+,{w:"allegory",h:"A story with a hidden moral meaning"},{w:"cadence",h:"A rhythmic flow of sounds"},{w:"defiant",h:"Boldly resisting authority"},{w:"fulcrum",h:"The point on which a lever rests"},{w:"haughty",h:"Arrogantly proud and superior"},{w:"inkling",h:"A slight suspicion or idea"},{w:"jocular",h:"Fond of joking; humorous"},{w:"laconic",h:"Using very few words"},{w:"maudlin",h:"Tearfully sentimental"},{w:"nebulous",h:"In the form of a cloud; vague"}],
+7:[
+{w:"abundance",h:"A very large amount of something"},{w:"brilliant",h:"Very clever or very bright"},{w:"celebrate",h:"To do something special to mark a happy event"},{w:"dangerous",h:"Could cause harm or injury"},{w:"elaborate",h:"Detailed and complicated"},{w:"fantastic",h:"Extremely good"},{w:"gratitude",h:"Being thankful for what someone has done"},{w:"hurricane",h:"A powerful tropical storm"},{w:"introduce",h:"To present someone for the first time"},{w:"kilometre",h:"A unit of length equal to one thousand metres"},{w:"librarian",h:"A person who works in a library"},{w:"memorable",h:"Worth remembering"},{w:"narration",h:"Telling a story or describing events"},{w:"objective",h:"A goal; not influenced by personal feelings"},{w:"paragraph",h:"A section of writing on a new line"},{w:"qualified",h:"Having the required skills or knowledge"},{w:"recommend",h:"To suggest something as good"},{w:"satellite",h:"An object orbiting a planet"},{w:"technique",h:"A skill or method"},{w:"uncertain",h:"Not sure about something"},{w:"versatile",h:"Able to do many things well"},{w:"worldwide",h:"Across the whole world"},{w:"yesterday",h:"The day before today"},{w:"appointed",h:"Chosen for a job or position"},{w:"behaviour",h:"The way a person or animal acts"},{w:"conscious",h:"Being aware and awake"},{w:"defensive",h:"Protecting against attack"},{w:"encourage",h:"To give support and confidence"},{w:"frequency",h:"How often something happens"},{w:"geography",h:"Study of Earth's lands and people"},{w:"hibernate",h:"To spend winter in a deep sleep-like state"},{w:"immediate",h:"Happening right now"},{w:"legendary",h:"Very famous and celebrated"},{w:"migration",h:"Moving from one place to another seasonally"},{w:"nightmare",h:"A frightening dream"},{w:"pollution",h:"Harmful substances in the environment"},{w:"radiation",h:"Energy given off as waves or particles"},{w:"reservoir",h:"A large lake for storing water"},{w:"sculpture",h:"Art made by shaping materials"},{w:"telescope",h:"An instrument to see distant objects"},{w:"universal",h:"Relating to everyone everywhere"},{w:"vibration",h:"A rapid back-and-forth movement"},{w:"ambiguous",h:"Having more than one possible meaning"},{w:"chronicle",h:"A factual account of events in time order"},{w:"dimension",h:"A measurement such as length or height"},{w:"eloquent",h:"Fluent and effective at speaking"},{w:"fertilise",h:"To add nutrients to soil for plants"},{w:"illuminate",h:"To light up; to make something clear"},{w:"abandoned",h:"Left behind with no intention of returning"},{w:"biography",h:"A written account of someone's life"},{w:"criticism",h:"Expressing disapproval or judgement"},{w:"democracy",h:"A system of government chosen by the people"},{w:"evolution",h:"The gradual change of living things over time"},{w:"formation",h:"The process of making or developing something"},{w:"generator",h:"A machine that produces electricity"},{w:"highlight",h:"The most interesting or best part"},{w:"influence",h:"The power to affect people or events"},{w:"judgement",h:"A decision made after careful thought"},{w:"limestone",h:"A rock made mostly of calcium carbonate"},{w:"keystroke",h:"The action of pressing a key on a keyboard"},{w:"abolition",h:"The formal putting an end to something"},{w:"battalion",h:"A large body of troops"},{w:"catapult",h:"A device for hurling heavy objects"},{w:"desolate",h:"Empty and without people; feeling lonely"},{w:"ephemeral",h:"Lasting for a very short time"},{w:"formulate",h:"To create or develop a strategy or proposal"},{w:"guerrilla",h:"A member of an irregular military group"},{w:"hypnotise",h:"To put someone into a trance state"},{w:"inflation",h:"A rise in prices over time"},{w:"jubilance",h:"Feeling of great happiness and triumph"},{w:"kaleidoscope",h:"A tube creating symmetrical patterns with mirrors and colour"},{w:"laborious",h:"Requiring considerable effort and time"},{w:"magnified",h:"Made to appear larger"},{w:"notorious",h:"Famous for something bad"},{w:"overgrown",h:"Covered with too many plants"},{w:"persevere",h:"To continue doing something despite difficulty"},{w:"qualified",h:"Having the right skills for a task"},{w:"resonance",h:"The quality of being deep, full, and reverberant"},{w:"sovereign",h:"A supreme ruler; also a type of gold coin"},{w:"testament",h:"Evidence of something; also part of the Bible"},{w:"undivided",h:"Not divided; complete and whole"},{w:"velodrome",h:"A cycling stadium with a banked track"},{w:"whirlpool",h:"A rapidly rotating mass of water"},{w:"xenophobe",h:"A person who fears or dislikes foreigners"},{w:"yardstick",h:"A measuring standard; also a stick one yard long"},{w:"zigzagged",h:"Moved in sharp alternating directions"},{w:"acrimony",h:"Bitterness or ill feeling"},{w:"barrister",h:"A lawyer who represents people in court"},{w:"celestial",h:"Relating to the sky or heavens"},{w:"detractor",h:"A person who speaks badly about someone"},{w:"elaborate",h:"Worked out in detail; complicated"},{w:"fastidious",h:"Very attentive to accuracy and detail"},{w:"gladiator",h:"A trained fighter in ancient Rome"},{w:"homograph",h:"A word spelled the same but with a different meaning"},{w:"inaugural",h:"Marking the beginning of something"},{w:"jamboree",h:"A large celebration or party"},{w:"knighthood",h:"The rank of a knight given by a sovereign"}
+,{w:"allocate",h:"To distribute resources for a purpose"},{w:"caffeine",h:"A stimulant found in coffee and tea"},{w:"denounce",h:"To publicly declare something wrong"},{w:"effusive",h:"Expressing great enthusiasm"},{w:"gratified",h:"Pleased and satisfied"},{w:"impartial",h:"Treating all rivals equally; fair"},{w:"kinetics",h:"The study of motion and forces"},{w:"latitude",h:"Freedom to act; or distance north of equator"},{w:"momentum",h:"The quantity of motion of a moving body"},{w:"narcotic",h:"A drug that dulls pain and causes drowsiness"}],
+8:[
+{w:"acknowledge",h:"To admit or accept something is true"},{w:"beneficiary",h:"A person who receives an advantage"},{w:"communicate",h:"To share information with others"},{w:"demonstrate",h:"To show how something works"},{w:"environment",h:"The natural world; surroundings that affect life"},{w:"fundamental",h:"A central or primary part of something"},{w:"independent",h:"Free from control by others"},{w:"legislation",h:"Laws created by a governing body"},{w:"neighbourhood",h:"An area where people live"},{w:"occasionally",h:"Sometimes but not often"},{w:"philosophical",h:"Relating to deep thinking about life"},{w:"quantitative",h:"Relating to measuring amounts"},{w:"revolutionary",h:"Causing a complete change"},{w:"sophisticated",h:"Having refined taste; complex"},{w:"technological",h:"Relating to the use of science for practical purposes"},{w:"undergraduate",h:"A university student without a degree yet"},{w:"vulnerability",h:"The quality of being easily hurt"},{w:"accumulate",h:"To gather or build up more and more"},{w:"biochemistry",h:"The study of chemical processes in living organisms"},{w:"composition",h:"How something is made up; a piece of writing"},{w:"economical",h:"Not wasting money or resources"},{w:"fluctuation",h:"Rising and falling in an irregular way"},{w:"humanitarian",h:"Concerned with improving human welfare"},{w:"incompetent",h:"Not having the skills to do something properly"},{w:"justifiable",h:"Can be shown to be right or reasonable"},{w:"longitudinal",h:"Extending lengthwise; relating to longitude"},{w:"metamorphosis",h:"A complete change of form"},{w:"notification",h:"A message about something that happened"},{w:"overwhelmed",h:"Feeling buried under too much"},{w:"questionnaire",h:"A set of written questions to gather information"},{w:"refrigerator",h:"An appliance that keeps food cold"},{w:"subscription",h:"Regular payment to receive something"},{w:"transcendent",h:"Going beyond ordinary limits"},{w:"unambiguous",h:"Clear with only one possible meaning"},{w:"veterinarian",h:"A doctor who treats animals"},{w:"wholehearted",h:"Done with full enthusiasm"},{w:"adversarial",h:"Involving opposition or conflict"},{w:"biodiversity",h:"The variety of plant and animal life"},{w:"constitutional",h:"Relating to the rules that govern a country"},{w:"detrimental",h:"Causing harm or damage"},{w:"equilibrium",h:"A state of balance between forces"},{w:"formidable",h:"Impressive and slightly frightening in size"},{w:"hypothetical",h:"Based on a suggestion not yet proven"},{w:"infrastructure",h:"The basic systems serving a country"},{w:"jurisdiction",h:"The territory over which authority extends"},{w:"kaleidoscope",h:"A tube with mirrors creating colourful patterns"},{w:"manipulation",h:"Controlling someone in a clever or unfair way"},{w:"navigational",h:"Relating to finding the way"},{w:"observatory",h:"A building with telescopes for watching the sky"},{w:"perpendicular",h:"Meeting at right angles"},{w:"qualification",h:"A certificate showing you passed an exam"},{w:"radioactive",h:"Emitting harmful radiation from unstable atoms"},{w:"subordinate",h:"Lower in rank or importance"},{w:"thermometer",h:"An instrument that measures temperature"},{w:"ultraviolet",h:"Light rays beyond violet the eye cannot see"},{w:"voluntarily",h:"Done by free choice"},{w:"wavelength",h:"The distance between two peaks of a wave"},{w:"xenophobia",h:"Fear or dislike of people from other countries"},{w:"accomplishment",h:"Something achieved through effort"},{w:"extraordinary",h:"Very unusual or remarkable"},{w:"abolitionist",h:"A person who campaigns to end a practice like slavery"},{w:"bureaucratic",h:"Relating to excessive official rules and procedures"},{w:"controversial",h:"Causing public disagreement or debate"},{w:"disorganised",h:"Not arranged neatly or systematically"},{w:"exaggeration",h:"Representing something as bigger than it really is"},{w:"fortunately",h:"By good luck; used to say something good happened"},{w:"geographical",h:"Relating to the physical features of the earth"},{w:"hierarchical",h:"Arranged in a system of ranks"},{w:"incidentally",h:"Used to introduce something not directly related"},{w:"jeopardise",h:"To put something at risk of being harmed"},{w:"kleptomaniac",h:"A person with an urge to steal"},{w:"laryngitis",h:"Inflammation of the throat causing hoarseness"},{w:"metamorphic",h:"Rock changed by heat and pressure"},{w:"nonchalant",h:"Feeling relaxed and not concerned"},{w:"obstruction",h:"Something that blocks or slows progress"},{w:"perseverance",h:"Continued effort despite difficulty"},{w:"quarantine",h:"A period of isolation to prevent disease spread"},{w:"reminiscence",h:"A story told about a past event"},{w:"stipulation",h:"A condition in an agreement"},{w:"turbulence",h:"Irregular motion in air or water; also unrest"},{w:"uncivilised",h:"Not having a developed or organised society"},{w:"vaccination",h:"Inoculation against a disease"},{w:"workmanship",h:"The degree of skill with which something is made"},{w:"xenotransplant",h:"Transplanting organs between different species"},{w:"youthfulness",h:"The quality of being young in appearance or spirit"},{w:"zoomorphism",h:"Representing a deity or person in animal form"},{w:"atrocious",h:"Horrifyingly wicked; also extremely bad"},{w:"benevolent",h:"Well-meaning and kindly"},{w:"combustion",h:"The process of burning"}
+,{w:"anticipate",h:"To expect and prepare for something"},{w:"barricade",h:"A temporary barrier to block passage"},{w:"calcified",h:"Hardened by calcium deposits"},{w:"deferential",h:"Showing great respect to someone"},{w:"fabrication",h:"The action of manufacturing; or a lie"},{w:"gestation",h:"The period of development before birth"},{w:"illuminate",h:"To light up or clarify something"},{w:"jeopardize",h:"To put something at risk of harm"},{w:"knowledgeable",h:"Intelligent and well-informed"},{w:"labyrinthine",h:"Like a labyrinth; extremely complex"}],
+9:[
+{w:"approximation",h:"A value close but not exact"},{w:"biodegradable",h:"Able to be broken down naturally"},{w:"circumstantial",h:"Based on indirect evidence"},{w:"discrimination",h:"Unfair treatment based on group membership"},{w:"fundamentalism",h:"Strict following of traditional beliefs"},{w:"geomorphology",h:"Study of landforms and the forces that shape them"},{w:"implementation",h:"Putting a plan or system into action"},{w:"jurisprudence",h:"The theory and philosophy of law"},{w:"nanotechnology",h:"Technology at an extremely small scale"},{w:"photosynthesis",h:"How plants make food using sunlight"},{w:"quantification",h:"Expressing something as a measurable quantity"},{w:"reconnaissance",h:"Gathering information about an area"},{w:"superfluous",h:"More than is needed; unnecessary"},{w:"telecommunication",h:"Communication over long distances electronically"},{w:"unsubstantiated",h:"Not supported by evidence"},{w:"verisimilitude",h:"The appearance of being true or real"},{w:"whistleblower",h:"A person who reports wrongdoing"},{w:"archaeological",h:"Relating to study of ancient history"},{w:"bioaccumulation",h:"Building up of substances in a living organism"},{w:"circumnavigation",h:"Travelling completely around something"},{w:"dysfunctionality",h:"Not working or behaving normally"},{w:"flabbergasted",h:"Extremely surprised and shocked"},{w:"gastrointestinal",h:"Relating to the stomach and intestines"},{w:"hypochondriac",h:"Someone excessively worried about illness"},{w:"indistinguishable",h:"So similar it cannot be told apart"},{w:"kindergarten",h:"A school for young children"},{w:"metamorphic",h:"Changed in form through heat and pressure"},{w:"nonconformist",h:"A person who does not follow accepted standards"},{w:"onomatopoeia",h:"A word that sounds like what it describes"},{w:"preposterous",h:"Completely absurd and ridiculous"},{w:"quadrilateral",h:"A flat shape with four straight sides"},{w:"rhinoplasty",h:"A surgical procedure to reshape the nose"},{w:"soliloquy",h:"A speech made by a character alone on stage"},{w:"thermodynamics",h:"Study of heat and energy"},{w:"ubiquitous",h:"Found everywhere at the same time"},{w:"valedictory",h:"Relating to a farewell speech"},{w:"abstemious",h:"Not eating or drinking very much"},{w:"bibliophile",h:"A person who loves and collects books"},{w:"concatenation",h:"A series of interconnected things"},{w:"disillusionment",h:"Disappointment from discovering the truth"},{w:"epitome",h:"A perfect example of something"},{w:"facetious",h:"Treating serious issues with inappropriate humour"},{w:"gastronomy",h:"The practice of choosing and cooking fine food"},{w:"herpetologist",h:"A scientist who studies reptiles"},{w:"ichthyology",h:"The branch of zoology that deals with fish"},{w:"juxtaposition",h:"Placing two things side by side for comparison"},{w:"kleptomaniac",h:"A person with an uncontrollable urge to steal"},{w:"luminescence",h:"The emission of light without heat"},{w:"multifaceted",h:"Having many different aspects"},{w:"neuroscience",h:"The scientific study of the nervous system"},{w:"ostentatious",h:"Displaying wealth in an overly showy way"},{w:"philanthropist",h:"A person who donates to help others"},{w:"quintessential",h:"Representing the most perfect example"},{w:"repercussion",h:"An unintended consequence"},{w:"serendipity",h:"Finding something good without looking for it"},{w:"transcendence",h:"Going beyond the limits of ordinary experience"},{w:"unprecedented",h:"Never having happened before"},{w:"voluminous",h:"Very large in volume or length"},{w:"weltanschauung",h:"A philosophy or view of the world"},{w:"absolution",h:"Formal release from guilt or punishment"},{w:"belligerent",h:"Hostile and aggressive"},{w:"catastrophic",h:"Involving sudden great damage"},{w:"deteriorate",h:"To become progressively worse"},{w:"enumeration",h:"The process of counting or listing things"},{w:"falsification",h:"The act of making something false"},{w:"gesticulate",h:"To use gestures instead of or with speech"},{w:"hallucinate",h:"To experience something that is not really there"},{w:"insubordinate",h:"Defying authority or refusing to obey"},{w:"juggernaut",h:"A large heavy vehicle; an unstoppable force"},{w:"kwashiorkor",h:"A form of severe protein malnutrition in children"},{w:"loquacious",h:"Tending to talk a great deal"},{w:"mercurial",h:"Subject to sudden changes of mood"},{w:"nefarious",h:"Wicked or criminal"},{w:"obfuscation",h:"Making something unclear or confusing"},{w:"pusillanimous",h:"Lacking courage; timid"},{w:"querulous",h:"Complaining in a petulant or whining manner"},{w:"recalcitrant",h:"Having an uncooperative attitude"},{w:"sycophantic",h:"Acting obsequiously to gain favour"},{w:"tautology",h:"Saying the same thing twice using different words"},{w:"umbrageous",h:"Easily offended"},{w:"vertiginous",h:"Causing dizziness due to great height"},{w:"wainscoting",h:"Wooden panelling lining the lower walls of a room"},{w:"xeriscape",h:"A style of garden that needs little water"},{w:"yeomanry",h:"A group of volunteer cavalry"},{w:"zooplankton",h:"Tiny animals drifting in water"},{w:"ameliorate",h:"To make something bad better"},{w:"blasphemous",h:"Showing disrespect for sacred things"},{w:"capricious",h:"Given to sudden changes of mood"},{w:"deleterious",h:"Causing harm or damage"},{w:"equivocate",h:"To use vague language to avoid committing oneself"},{w:"fiduciary",h:"Involving a trust especially in financial matters"},{w:"garrulous",h:"Excessively talkative"},{w:"histrionic",h:"Excessively dramatic or theatrical"},{w:"indelible",h:"Making marks that cannot be removed"},{w:"jejune",h:"Naive or simplistic; lacking interest"},{w:"kilowatt",h:"A unit of electrical power equal to one thousand watts"},{w:"lachrymose",h:"Tearful; prone to weeping"},{w:"malevolent",h:"Having or showing a wish to do evil"},{w:"narcissism",h:"Excessive interest in or admiration of oneself"},{w:"oscillation",h:"Movement back and forth at regular intervals"},{w:"paraphernalia",h:"Equipment and accessories for a particular activity"},{w:"quixotic",h:"Exceedingly idealistic; unrealistic"},{w:"ratiocination",h:"The process of logical reasoning"},{w:"salubrious",h:"Health-giving; pleasant; not run-down"},{w:"troglodyte",h:"A person who lives in a cave; someone old-fashioned"},{w:"uxorious",h:"Having or showing an excessive fondness for one's wife"},{w:"vapid",h:"Offering nothing stimulating or challenging"},{w:"wunderkind",h:"A person who achieves success at a very young age"},{w:"xylography",h:"The art of making woodblock prints"},{w:"yarborough",h:"A hand in cards with no card above a nine"},{w:"zymurgy",h:"The science of fermentation in brewing"}
+]};
+
+
+// ═══════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════
+const MAX_W=9, Q_PER_TERM=20, PASS=16, TERMS=3;
+const PARTS=['p0','p1','p2','p3','p4','p5','p6','p7','p8'];
+
+let G={level:1,term:1,qi:0,correct:0,score:0,word:'',hint:'',guessed:[],wrong:0,pool:[]};
+
+// ═══════════════════════════════════════
+// PROGRESS
+// ═══════════════════════════════════════
+const lp=()=>{try{return JSON.parse(localStorage.getItem('hprog'))||{};}catch{return{};}};
+const sp=p=>{try{localStorage.setItem('hprog',JSON.stringify(p));}catch{}};
+const tk=(l,t)=>`L${l}T${t}`;
+
+// ═══════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+// ═══════════════════════════════════════
+// LEVEL SELECT
+// ═══════════════════════════════════════
+function buildLevels(){
+  const g=document.getElementById('lgrid'),p=lp();g.innerHTML='';
+  for(let l=1;l<=9;l++){
+    const div=document.createElement('div');
+    const ok=lvlUnlocked(l,p),done=lvlDone(l,p);
+    div.className='lcard'+(ok?'':' locked')+(done?' done':'');
+    div.innerHTML=`<div style="font-size:1.3rem">${!ok?'🔒':done?'🏆':'🎯'}</div><div class="lnum">Basic ${l}</div><div class="lname">Level ${l}</div><div class="lstars">${lvlStars(l,p)}</div>`;
+    if(ok)div.onclick=()=>pickLevel(l);
+    g.appendChild(div);
+  }
+}
+function lvlUnlocked(l,p){return l===1||lvlDone(l-1,p);}
+function lvlDone(l,p){for(let t=1;t<=TERMS;t++){if(!p[tk(l,t)]?.passed)return false;}return true;}
+function lvlStars(l,p){let s='';for(let t=1;t<=TERMS;t++){s+=p[tk(l,t)]?.passed?'⭐':'☆';}return s;}
+
+function pickLevel(l){
+  G.level=l;
+  document.getElementById('termTitle').textContent=`Basic ${l} – Choose Term`;
+  buildTerms(l);showScreen('termSelect');
+}
+function buildTerms(l){
+  const w=document.getElementById('tcards'),p=lp();w.innerHTML='';
+  for(let t=1;t<=TERMS;t++){
+    const key=tk(l,t),passed=p[key]?.passed,unlocked=t===1||p[tk(l,t-1)]?.passed;
+    const div=document.createElement('div');
+    div.className='tcard'+(unlocked?'':' locked')+(passed?' done':(!passed&&unlocked?' cur':''));
+    div.innerHTML=`<div><div class="tn">Term ${t}</div><div class="tp">${passed?`Best: ${p[key].best||0}/20 ✅`:unlocked?'Need 16/20 to pass':'Locked 🔒'}</div></div><div style="font-size:1.35rem">${passed?'🌟':unlocked?'▶':'🔒'}</div>`;
+    if(unlocked)div.onclick=()=>startTerm(l,t);
+    w.appendChild(div);
+  }
+}
+
+// ═══════════════════════════════════════
+// GAME
+// ═══════════════════════════════════════
+function startTerm(level,term){
+  G.level=level;G.term=term;G.qi=0;G.correct=0;G.score=0;
+  const all=[...DB[level]];shuffle(all);
+  const off=((term-1)*20)%all.length;
+  G.pool=Array.from({length:Q_PER_TERM},(_,i)=>all[(off+i)%all.length]);
+  document.getElementById('gLvl').textContent=`Basic ${level} – T${term}`;
+  showScreen('gameScreen');loadQ();
+}
+
+function loadQ(){
+  const q=G.pool[G.qi];
+  G.word=q.w.toLowerCase();G.hint=q.h;G.guessed=[];G.wrong=0;
+  document.getElementById('qNum').textContent=`Q ${G.qi+1}/20`;
+  document.getElementById('qOk').textContent=`✅ ${G.correct}`;
+  document.getElementById('gScore').textContent=G.score;
+  document.getElementById('pFill').style.width=(G.qi/Q_PER_TERM*100)+'%';
+  document.getElementById('hintTxt').textContent=G.hint;
+  document.getElementById('wl').innerHTML='';
+  // Reset speak button
+  const sb=document.getElementById('speakBtn');const sl=document.getElementById('speakLabel');
+  if(sb)sb.classList.remove('busy');if(sl)sl.textContent='Tap to hear hint read aloud';
+  resetMan();renderWord();resetKb();renderHearts();
+}
+
+function renderWord(){
+  const d=document.getElementById('wdisp');d.innerHTML='';
+  for(const ch of G.word){
+    const s=document.createElement('div');s.className='ls';s.dataset.c=ch;
+    if(ch===' '){s.style.borderBottom='none';s.style.width='14px';}
+    else if(G.guessed.includes(ch)){s.textContent=ch.toUpperCase();s.classList.add('rev');}
+    d.appendChild(s);
+  }
+}
+function resetMan(){PARTS.forEach(id=>{const e=document.getElementById(id);if(e){e.classList.remove('show');}});}
+function renderHearts(){
+  const r=document.getElementById('hearts');r.innerHTML='';
+  for(let i=0;i<MAX_W;i++){const s=document.createElement('span');s.className='h'+(i<G.wrong?' lost':'');s.textContent=i<G.wrong?'🖤':'❤️';r.appendChild(s);}
+}
+function buildKb(){
+  const rows=[['A','B','C','D','E','F','G','H','I'],['J','K','L','M','N','O','P','Q','R'],['S','T','U','V','W','X','Y','Z']];
+  const kb=document.getElementById('kb');kb.innerHTML='';
+  rows.forEach(row=>{
+    const rd=document.createElement('div');rd.className='kbrow';
+    row.forEach(ch=>{const b=document.createElement('button');b.className='kk';b.textContent=ch;b.id='k'+ch;b.dataset.l=ch.toLowerCase();rd.appendChild(b);});
+    kb.appendChild(rd);
+  });
+  // Single delegated listener – avoids issues with re-wiring
+  kb.addEventListener('click',e=>{
+    const b=e.target.closest('.kk');
+    if(!b||b.classList.contains('used'))return;
+    unlockAudio();guess(b.dataset.l);
+  });
+}
+function resetKb(){document.querySelectorAll('.kk').forEach(b=>b.className='kk');}
+
+function guess(l){
+  if(G.guessed.includes(l))return;
+  G.guessed.push(l);
+  const btn=document.getElementById('k'+l.toUpperCase());
+  if(G.word.includes(l)){
+    if(btn)btn.classList.add('ok','used');
+    document.querySelectorAll('.ls').forEach(s=>{if(s.dataset.c===l){s.textContent=l.toUpperCase();s.classList.add('rev');}});
+    if(solved())setTimeout(()=>showResult(true),350);
+  } else {
+    if(btn)btn.classList.add('no','used');
+    G.wrong++;
+    const p=document.getElementById(PARTS[G.wrong-1]);if(p)p.classList.add('show');
+    renderHearts();
+    const wl=document.getElementById('wl');const sp=document.createElement('span');sp.className='wll';sp.textContent=l.toUpperCase();wl.appendChild(sp);
+    if(G.wrong>=MAX_W)setTimeout(()=>showResult(false),350);
+  }
+}
+function solved(){return[...G.word].every(c=>c===' '||G.guessed.includes(c));}
+
+function showResult(won){
+  const oc=document.getElementById('wordOvC');
+  if(won){
+    G.correct++;G.score+=Math.max(10,50-G.wrong*5);
+    document.getElementById('ovIco').textContent='🎉';
+    document.getElementById('ovTit').textContent='Correct!';
+    document.getElementById('ovTit').style.color='var(--a3)';
+    document.getElementById('ovMsg').textContent='Great spelling! '+G.hint;
+    oc.style.borderColor='var(--a3)';
+    playWin();
+    const ph=['Fantastic! You got it!','Brilliant! Well done!','Excellent work!','Super! That is correct!','Outstanding!','Wonderful! Keep it up!'];
+    setTimeout(()=>speak(ph[Math.floor(Math.random()*ph.length)],0.88,1.1),550);
+    confetti();
+    const f=document.createElement('div');f.className='wflash';document.body.appendChild(f);setTimeout(()=>f.remove(),650);
+  } else {
+    document.getElementById('ovIco').textContent='😢';
+    document.getElementById('ovTit').textContent='Oh Poor You!';
+    document.getElementById('ovTit').style.color='var(--a2)';
+    document.getElementById('ovMsg').textContent=`The word was "${G.word.toUpperCase()}". ${G.hint}`;
+    oc.style.borderColor='var(--a2)';
+    playLose();
+    const gw=document.querySelector('.gw');if(gw){gw.classList.add('shake');setTimeout(()=>gw.classList.remove('shake'),550);}
+    setTimeout(()=>speak(`Oh poor you! The word was ${G.word}. ${G.hint}`,0.82,0.95),380);
+  }
+  document.getElementById('ovWrd').textContent=G.word.toUpperCase();
+  document.getElementById('gScore').textContent=G.score;
+  document.getElementById('wordOv').classList.add('show');
+}
+
+// ═══════════════════════════════════════
+// RESULTS
+// ═══════════════════════════════════════
+function showResults(){
+  const passed=G.correct>=PASS,p=lp(),key=tk(G.level,G.term);
+  if(!p[key])p[key]={};
+  p[key].best=Math.max(p[key].best||0,G.correct);
+  if(passed)p[key].passed=true;
+  sp(p);
+  document.getElementById('rTitle').textContent=passed?'Term Passed! 🎉':'Keep Practising!';
+  document.getElementById('rScore').textContent=G.correct;
+  document.getElementById('rStars').textContent=G.correct>=19?'⭐⭐⭐':G.correct>=17?'⭐⭐':passed?'⭐':'';
+  document.getElementById('rMsg').textContent=passed?(G.correct>=19?'Outstanding! Perfect run!':'Great job! You passed!'): `Need ${PASS}/20 to pass. Got ${G.correct}. Try again!`;
+  const rb=document.getElementById('rBtns');rb.innerHTML='';
+  const mkBtn=(cls,txt,fn)=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;b.addEventListener('click',fn);rb.appendChild(b);};
+  if(passed){
+    if(G.term<TERMS){mkBtn('bg',`▶ Term ${G.term+1}`,()=>startTerm(G.level,G.term+1));}
+    else if(G.level<9){mkBtn('bg',`🏆 Next: Basic ${G.level+1}`,()=>pickLevel(G.level+1));}
+    else{mkBtn('bp','🏅 All levels complete!',()=>{});}
+    playWin();confetti();
+    setTimeout(()=>speak(G.term<TERMS?`Congratulations! You passed Term ${G.term}! Moving to Term ${G.term+1}.`:G.level<9?`Amazing! You completed Basic Level ${G.level}! Moving to Level ${G.level+1}!`:'Incredible! You are a true Word Master!',0.85,1.1),700);
+  } else {
+    playLose();
+    setTimeout(()=>speak(`Oh poor you! You got ${G.correct} out of 20. You need ${PASS} to pass. Please try again!`,0.82,0.95),600);
+  }
+  mkBtn('bs','🔄 Retry',()=>startTerm(G.level,G.term));
+  mkBtn('bs','🏠 Levels',()=>{buildLevels();showScreen('levelSelect');});
+  showScreen('resultsScreen');
+}
+
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function confetti(){
+  const cols=['#f5c842','#ff6b6b','#5ef5a0','#64d8ff','#ff9400','#c084fc'];
+  for(let i=0;i<40;i++){const el=document.createElement('div');el.className='confetti-p';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length,{w:"anthropology",h:"The study of human societies and cultures"},{w:"bioethics",h:"The ethics of medical and biological research"},{w:"dissonance",h:"Lack of harmony; a clash of sounds"},{w:"enfranchise",h:"To give someone the right to vote"},{w:"filibuster",h:"A long speech used to delay a decision"},{w:"hegemony",h:"Leadership or dominance over others"},{w:"iconoclast",h:"A person who attacks established beliefs"},{w:"magnanimous",h:"Generous or forgiving especially to a rival"},{w:"nomenclature",h:"A system of names used in a scientific field"},{w:"obsequious",h:"Excessively eager to please someone powerful"},{w:"palimpsest",h:"A manuscript where writing has been erased and replaced"},{w:"quintessence",h:"The most perfect or typical example of something"}]};width:${7+Math.random()*8}px;height:${7+Math.random()*8}px;animation-delay:${Math.random()}s;animation-duration:${1.4+Math.random()*1.4}s;transform:rotate(${Math.random()*360}deg);border-radius:${Math.random()>.5?'50%':'2px'}`;
+    document.body.appendChild(el);setTimeout(()=>el.remove(),3200);}
+}
+function generateStars(){
+  const c=document.getElementById('SC');
+  for(let i=0;i<55;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2.5+.8;s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*3}s`;c.appendChild(s);}
+}
+
+// ═══════════════════════════════════════
+// WIRING – all event listeners in one place
+// This is the KEY fix: speak button uses addEventListener, not onclick=""
+// ═══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', ()=>{
+  generateStars();
+  buildKb();
+  preloadVoices();
+
+  // Play / Progress buttons
+  document.getElementById('playBtn').addEventListener('click', handlePlay);
+  document.getElementById('progBtn').addEventListener('click', handlePlay);
+
+  // OTP pad
+  document.querySelectorAll('.otp-key[data-k]').forEach(b=>{
+    b.addEventListener('click',()=>otpPress(b.dataset.k));
+  });
+  document.getElementById('otpDel').addEventListener('click', otpDel);
+  document.getElementById('otpBack').addEventListener('click',()=>showScreen('welcome'));
+
+  // Lock overlay
+  document.getElementById('lockRetry').addEventListener('click',()=>{
+    document.getElementById('lockOv').classList.remove('show');
+    otpReset();showScreen('otpScreen');
+  });
+
+  // Back buttons
+  document.getElementById('lvlBack').addEventListener('click',()=>showScreen('welcome'));
+  document.getElementById('termBack').addEventListener('click',()=>showScreen('levelSelect'));
+
+  // Quit buttons
+  document.getElementById('quitBtn').addEventListener('click',()=>document.getElementById('quitOv').classList.add('show'));
+  document.getElementById('quitYes').addEventListener('click',()=>{document.getElementById('quitOv').classList.remove('show');buildLevels();showScreen('levelSelect');});
+  document.getElementById('quitNo').addEventListener('click',()=>document.getElementById('quitOv').classList.remove('show'));
+
+  // Next word button
+  document.getElementById('nextBtn').addEventListener('click',()=>{
+    document.getElementById('wordOv').classList.remove('show');
+    document.getElementById('wordOvC').style.borderColor='var(--card)';
+    G.qi++;
+    if(G.qi>=Q_PER_TERM)showResults();else loadQ();
+  });
+
+  // ★ SPEAK BUTTON – addEventListener = real user gesture = speech works ★
+  document.getElementById('speakBtn').addEventListener('click', doSpeakHint);
+
+  // Physical keyboard
+  document.addEventListener('keydown',e=>{
+    if(document.getElementById('gameScreen').classList.contains('active')){
+      const l=e.key.toLowerCase();if(/^[a-z]$/.test(l)){unlockAudio();guess(l);}
+    }
+  });
+
+  // Check lock state
+  if(isLocked()) document.getElementById('lockOv').classList.add('show');
+
+  // Welcome speech after voices preload
+  setTimeout(()=>{
+    speak('Welcome to Hangman Game, developed by Booming Point Multimedia Center, Bolgatanga. Contact us on 0244693396.',0.82,1.0);
+  }, 1600);
+
+  // Install guide button – always visible on welcome screen
+  document.getElementById('installGuideBtn').addEventListener('click', ()=>{
+    document.getElementById('installModal').classList.add('show');
+  });
+});
+
+// ═══════════════════════════════════════
+// PWA – MANIFEST (injected as blob so no server needed)
+// ═══════════════════════════════════════
+(function injectManifest(){
+  // SVG app icon embedded as data URI (purple star with game target)
+  const iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <rect width="512" height="512" rx="100" fill="#0f0326"/>
+    <circle cx="256" cy="256" r="180" fill="none" stroke="#f5c842" stroke-width="18"/>
+    <circle cx="256" cy="256" r="120" fill="none" stroke="#f5c842" stroke-width="14" opacity=".7"/>
+    <circle cx="256" cy="256" r="60"  fill="none" stroke="#f5c842" stroke-width="10" opacity=".5"/>
+    <circle cx="256" cy="256" r="22"  fill="#ff6b6b"/>
+    <text x="256" y="430" font-size="88" text-anchor="middle" font-family="Arial" fill="#f5c842">HWQ</text>
+  </svg>`;
+  const iconURL = 'data:image/svg+xml;base64,' + btoa(iconSVG);
+
+  const manifest = {
+    name: 'Hangman Word Quest',
+    short_name: 'HangmanQ',
+    description: 'Spelling game for Basic School pupils by Booming Point Multimedia Center, Bolgatanga',
+    start_url: '.',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#0f0326',
+    theme_color: '#0f0326',
+    categories: ['education', 'games'],
+    icons: [
+      { src: iconURL, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+      { src: iconURL, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+    ]
+  };
+
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+  const url  = URL.createObjectURL(blob);
+  document.getElementById('pwaManifest').href = url;
+  document.getElementById('appleIcon').href   = iconURL;
+})();
+
+// ═══════════════════════════════════════
+// PWA – SERVICE WORKER (injected inline so no separate file needed)
+// ═══════════════════════════════════════
+(function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+
+  const swCode = `
+const CACHE = 'hangman-v1';
+const FONT  = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap';
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll([FONT]).catch(()=>{}))
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  // Cache-first for fonts, network-first for everything else
+  if(e.request.url.includes('fonts.g')){
+    e.respondWith(
+      caches.match(e.request).then(r => r || fetch(e.request).then(res=>{
+        const clone = res.clone();
+        caches.open(CACHE).then(c=>c.put(e.request,clone));
+        return res;
+      }).catch(()=>new Response('',{status:408})))
+    );
+  } else {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
+    );
+  }
+});
+`;
+
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const swURL = URL.createObjectURL(blob);
+
+  navigator.serviceWorker.register(swURL, {scope: '/'})
+    .then(reg => console.log('SW registered:', reg.scope))
+    .catch(err => console.log('SW note:', err.message));
+})();
+
+// ═══════════════════════════════════════
+// PWA – INSTALL PROMPT BANNER
+// ═══════════════════════════════════════
+(function setupInstallPrompt(){
+  let deferredPrompt = null;
+
+  // Check if already running as installed PWA
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+
+  if(isStandalone){
+    // Running as installed app – hide the install button
+    const btn = document.getElementById('installGuideBtn');
+    if(btn) btn.style.display = 'none';
+    document.getElementById('alreadyInstalled').classList.add('show');
+  }
+
+  // Listen for Chrome's install event (fires when PWA criteria are met)
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // Show the 1-tap install button inside the modal
+    const nowBtn = document.getElementById('installNowBtn');
+    if(nowBtn) nowBtn.classList.add('show');
+    // Also make welcome install button pulse to draw attention
+    const guideBtn = document.getElementById('installGuideBtn');
+    if(guideBtn){
+      guideBtn.style.background = 'linear-gradient(135deg,#f5c842,#ff9400)';
+      guideBtn.style.color = '#1a0533';
+      guideBtn.style.border = 'none';
+      guideBtn.textContent = '⬇️ Install App';
+    }
+  });
+
+  // 1-tap install button inside modal
+  document.getElementById('installNowBtn').addEventListener('click', async ()=>{
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installModal').classList.remove('show');
+    if(outcome === 'accepted') showToast('✅ App installed! Find it on your home screen.');
+  });
+
+  // App successfully installed via any method
+  window.addEventListener('appinstalled', ()=>{
+    deferredPrompt = null;
+    document.getElementById('installModal').classList.remove('show');
+    const btn = document.getElementById('installGuideBtn');
+    if(btn){ btn.textContent = '✅ App Installed!'; btn.style.background='linear-gradient(135deg,#5ef5a0,#00b560)'; btn.style.color='#003020'; btn.style.border='none'; }
+    showToast('✅ Installed! Open from your home screen anytime.');
+  });
+
+  function showToast(msg){
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#5ef5a0,#00b560);color:#003020;padding:12px 22px;border-radius:50px;font-family:Poppins,sans-serif;font-weight:700;font-size:.85rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.4);white-space:nowrap;text-align:center;max-width:90vw;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(), 5000);
+  }
+})();
+</script>
+</body>
+</html>
